@@ -1,0 +1,42 @@
+# Node / TypeScript
+node_modules/
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Env — never commit real values
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Test / coverage
+coverage/
+.nyc_output/
+
+# GCP / auth artifacts (should never be checked in)
+*.json.key
+*-service-account.json
+gcloud/
+.gcloudignore
+
+# GitHub App private keys (stored in Secret Manager, not on disk)
+*.pem
+github-app-private-key*
+
+# Local build artifacts
+/tmp/
+*.log
