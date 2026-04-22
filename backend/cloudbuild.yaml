@@ -1,0 +1,46 @@
+# Cloud Build config for the app-generator-v2 backend.
+#
+# Usage (from the repo root):
+#   gcloud builds submit backend \
+#     --config=backend/cloudbuild.yaml \
+#     --substitutions=_IMAGE_TAG=$(git rev-parse --short HEAD)
+#
+# Produces: us-central1-docker.pkg.dev/reconciliation-dashboard/idso-apps/app-generator-v2-backend:<tag>
+
+substitutions:
+  _REGION: us-central1
+    _PROJECT_ID: reconciliation-dashboard
+      _REPO: idso-apps
+        _IMAGE_NAME: app-generator-v2-backend
+          _IMAGE_TAG: latest
+
+          steps:
+            - name: gcr.io/cloud-builders/docker
+                id: build
+                    args:
+                          - build
+                                - -t
+                                      - ${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/${_IMAGE_NAME}:${_IMAGE_TAG}
+                                            - -t
+                                                  - ${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/${_IMAGE_NAME}:latest
+                                                        - .
+
+                                                          - name: gcr.io/cloud-builders/docker
+                                                              id: push-tag
+                                                                  args:
+                                                                        - push
+                                                                              - ${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/${_IMAGE_NAME}:${_IMAGE_TAG}
+
+                                                                                - name: gcr.io/cloud-builders/docker
+                                                                                    id: push-latest
+                                                                                        args:
+                                                                                              - push
+                                                                                                    - ${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/${_IMAGE_NAME}:latest
+                                                                                                    
+                                                                                                    images:
+                                                                                                      - ${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/${_IMAGE_NAME}:${_IMAGE_TAG}
+                                                                                                        - ${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/${_IMAGE_NAME}:latest
+                                                                                                        
+                                                                                                        options:
+                                                                                                          logging: CLOUD_LOGGING_ONLY
+                                                                                                          
