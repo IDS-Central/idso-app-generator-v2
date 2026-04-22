@@ -7,7 +7,7 @@
  *   3. Initialize structured logger (logger.ts).
  *   4. Construct Anthropic client (anthropic.ts).
  *   5. Construct auth layer with OAuth client id as audience (auth.ts).
- *   6. Register routes: GET /healthz (unauthed), GET /me (authed).
+ *   6. Register routes: GET /livez (unauthed), GET /me (authed).
  *   7. Listen on PORT.
  *
  * Phase 1 intentionally omits:
@@ -26,7 +26,7 @@ import { loadSecrets } from './secrets.js';
 import { createRootLogger } from './logger.js';
 import { createAuth } from './auth.js';
 import { createAnthropicClient } from './anthropic.js';
-import { registerHealthzRoute } from './routes/healthz.js';
+import { registerLivezRoute } from './routes/livez.js';
 import { registerMeRoute } from './routes/me.js';
 
 async function main(): Promise<void> {
@@ -48,7 +48,7 @@ async function main(): Promise<void> {
 
   const anthropic = createAnthropicClient({
         apiKey: secrets.anthropicApiKey,
-        logger,
+        logger: logger as any,
   });
     // Force a reference so the linter doesn't warn; real use comes in Phase 2.
   void anthropic;
@@ -59,13 +59,13 @@ async function main(): Promise<void> {
   });
 
   const app = Fastify({
-        logger,
+        logger: logger as any,
         disableRequestLogging: false,
         trustProxy: true,
         bodyLimit: 1024 * 1024, // 1 MB — chat turns are tiny; generated-file payloads stay server-side
   });
 
-  registerHealthzRoute(app);
+  registerLivezRoute(app);
     registerMeRoute(app, { auth });
 
   const address = await app.listen({ host: '0.0.0.0', port: config.port });

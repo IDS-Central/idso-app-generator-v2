@@ -1,5 +1,5 @@
 /**
- * GET /healthz
+ * GET /livez
  *
  * Unauthenticated liveness probe for Cloud Run. Returns 200 if the process is up.
  * Does NOT check Secret Manager, Anthropic, or GitHub — those are verified once at
@@ -9,8 +9,8 @@
 
 import type { FastifyInstance } from 'fastify';
 
-export function registerHealthzRoute(app: FastifyInstance): void {
-    app.get('/healthz', async () => {
+export function registerLivezRoute(app: FastifyInstance): void {
+    app.get('/livez', async () => {
           return { status: 'ok' };
     });
 }
