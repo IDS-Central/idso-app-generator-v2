@@ -213,3 +213,48 @@ $ bq ls reconciliation-dashboard:idso_app_generator
 - Loop currently uses a placeholder `systemPrompt` from caller; commit 5 will wire the real generator-aware prompt that references the catalog
 - 2 PMS_system tables (`BankPayerList_Normalised`, `BankTxn_Normalised`) still without descriptions in the catalog (intentional gap, see Phase 1.6)
 
+
+---
+
+## Phase 2  Commit 5 of 6: SSE chat endpoint + dedicated system prompt  *(2026-04-23)*
+
+**Commit:** `a1b55c6`  `feat(backend): SSE chat endpoint + dedicated system prompt`
+**Build:** `716e0e3a-8b2d-4810-9099-4be92d9d1149`  **SUCCESS**
+**Cloud Run revision:** `idso-app-generator-v2-backend-dev-00007-4t2`  (serving at `https://idso-app-generator-v2-backend-dev-ne5jp3kqbq-uc.a.run.app`)
+
+### What landed
+- **`backend/src/agent/prompt.ts`** (new)  `DEFAULT_SYSTEM_PROMPT` constant. Encodes the non-negotiables the tool-use agent must honour on every turn:
+  - Project is `reconciliation-dashboard`, region `us-central1`.
+  - Every generated app runs under its own runtime SA  `idso-{app-name}-runtime@reconciliation-dashboard.iam.gserviceaccount.com`  with exactly `roles/bigquery.dataViewer` + `roles/bigquery.jobUser`.
+  - Private generator tables go in `idso_{app_name}`.
+  - Data discovery rules: ALWAYS call `bq_catalog_search` / `bq_describe_table` / `bq_dry_run` before committing to SQL; catalog covers all 80 tables; if a table cannot be found, tell the user rather than guess.
+  - Ambiguous metrics ("net production", "collections", "utilisation")  call `ask_user` for the exact formula; never invent one; capture the answer as a commented view.
+  - Info security: only corporate IDSO staff use these apps, no row-level security needed unless the user requests it.
+  - Pre-approval pause: any write action (create SA, create repo, create trigger, deploy) must wait for explicit user approval first.
+
+- **`backend/src/routes/chat.ts`** (new, 4 routes, ownership-enforced via `SessionRow.user_email`):
+  - `POST /v1/chat/sessions`  authed user creates a session, returns `{ session_id }`.
+  - `POST /v1/chat/:sessionId/turn`  appends the user turn and runs the agent loop synchronously, returning the `LoopResult` (either a final assistant message, an `awaiting_approval` signal with the pending `tool_use_id`, or a max-iterations termination).
+  - `POST /v1/chat/:sessionId/approve`  records an `approved` / `rejected` decision keyed by `tool_use_id` and, when approved, auto-resumes the loop in the same request.
+  - `GET /v1/chat/:sessionId/stream`  SSE replay of the stored turn history + a 15s heartbeat comment so Cloud Run / intermediary proxies don't drop the long-lived connection. Live token-by-token streaming out of `runAgentLoop` is intentionally deferred; the synchronous `POST /turn` is already end-to-end functional for the generator use case.
+
+- **`backend/src/index.ts`**  boot sequence now additionally:
+  - `loadCatalog()` reads the shipped `backend/src/tools/data-catalog.json` once at startup.
+  - Logs `catalog_loaded` with `{ datasets, tables, generated_at }` so we can confirm the generator is data-aware without a BigQuery round-trip.
+  - `registerChatRoutes(app, { auth, anthropic: anthropic.client, store: sessionStore, toolDeps: { bq, catalog, logger }, logger, systemPrompt: DEFAULT_SYSTEM_PROMPT })`.
+
+### Verified live
+Runtime boot log on revision `00007-4t2`:
+```
+boot_config_loaded
+boot_secrets_loaded
+session_store_ready
+catalog_loaded                                    NEW, confirms catalog wired into tool deps
+Server listening at http://0.0.0.0:8080
+boot_listening
+```
+All four turn/approve/stream/sessions routes live behind `requireIdsoUser`  unauth curl to `/lives` correctly returns 403 at the Cloud Run edge, and the revision stayed healthy after the probe request.
+
+### Notes / deferred
+- **Live streaming**  chat stream currently SSE-replays stored history. Anthropic streaming  per-token SSE can be layered on top of `runAgentLoop` later without a breaking schema change.
+- **Write-tool handlers**  still stubbed in the registry; Commit 2b will land `create_service_account`, `grant_iam`, `create_github_repo`, `create_cloud_build_trigger`, `deploy_cloud_run`, and the approval contract already works end-to-end in the loop + routes.
