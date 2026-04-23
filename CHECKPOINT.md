@@ -502,3 +502,106 @@ Followups also needed regardless of the option chosen:
 - 10 npm vulnerabilities from googleapis install.
 - `lives.ts` FS/git anomaly.
 - No `docs/SMOKE-TEST.md` yet -- the canonical recipe lives in the gh_create_repo checkpoint section above plus the procedure exercised in this session.
+
+## 2026-04-23 (PM very late) Option A applied + retry; Cloud Build STILL refuses runtime SA (HTTP 403)
+
+### Code change shipped (commit a1a21d2 -> revision 00018-jkk)
+
+`backend/src/tools/iam.ts` `RUNTIME_ROLES` extended from 3 -> 5:
+
+| Role | When needed |
+| --- | --- |
+| roles/bigquery.dataViewer | runtime BQ read |
+| roles/bigquery.jobUser | runtime BQ query jobs |
+| roles/logging.logWriter | required by Cloud Build to attach SA as trigger identity |
+| **roles/cloudbuild.builds.builder** *(new)* | required so the SA can actually run a Cloud Build job |
+| **roles/run.developer** *(new)* | required so the same build can deploy to Cloud Run |
+
+CI build `3fd9c0bf-...` SUCCESS, Cloud Run revision `idso-app-generator-v2-backend-dev-00018-jkk` serving 100%. Verified `tsc --noEmit` clean before push.
+
+### Smoke test 2 of cloudbuild_create_trigger -- STILL FAILS with HTTP 403
+
+Session `585b94ae-27cf-46d4-a7f0-187a2aa3c72d`, app `smoke-cb-2`:
+
+| Step | Tool | Result |
+| --- | --- | --- |
+| 1 | iam_create_sa(smoke-cb-2) | OK -- SA created with all FIVE roles bound at project level. Verified via `gcloud projects get-iam-policy --flatten`. |
+| 2 | gh_create_repo(smoke-cb-2) | OK -- repo `IDS-Central/idso-app-smoke-cb-2` created, initial commit `4844360156f4...` |
+| 3a | cloudbuild_create_trigger(smoke-cb-2, dev, ...) | FAIL -- HTTP 403 PERMISSION_DENIED, identical to smoke-cb-1 |
+| 3b | retry of 3a after 60s wait (in case of IAM eventual consistency) | FAIL -- same 403 |
+
+Backend log line for both attempts:
+
+```
+cloudbuild trigger create failed: HTTP 403 PERMISSION_DENIED insufficient permissions
+from service account projects/reconciliation-dashboard/serviceAccounts/
+  idso-smoke-cb-2-runtime@reconciliation-dashboard.iam.gserviceaccount.com
+to project 142054839786
+```
+
+### Diagnostic state captured at failure
+
+**Runtime SA project-level roles (verified via get-iam-policy):**
+```
+roles/bigquery.dataViewer
+roles/bigquery.jobUser
+roles/cloudbuild.builds.builder        <-- newly granted, present
+roles/logging.logWriter
+roles/run.developer                    <-- newly granted, present
+```
+All five expected roles are bound. The grant did succeed.
+
+**Backend SA (`idso-app-generator-v2@`) project-level roles:**
+```
+roles/artifactregistry.admin
+roles/bigquery.admin
+roles/cloudbuild.editor
+roles/cloudsql.admin
+roles/developerconnect.readTokenAccessor
+roles/iam.serviceAccountAdmin
+roles/iam.serviceAccountUser           <-- present, can actAs any project SA
+roles/logging.logWriter
+roles/resourcemanager.projectIamAdmin
+roles/run.admin
+roles/secretmanager.admin
+```
+Backend SA already has `iam.serviceAccountUser` at project scope, so it should be able to "actAs" the freshly-created runtime SA.
+
+**Runtime SA resource-level IAM policy:** `etag: ACAB` only, no resource-level bindings (none needed if backend SA has the project-level grant).
+
+### What we still don't understand
+
+The Cloud Build error message wording -- "insufficient permissions FROM service account X TO project N" -- is Cloud Build's standard phrasing when it cannot validate that the SA we're attaching as the trigger identity has the rights to run a build in the project. But:
+- The SA has `cloudbuild.builds.builder` (which contains all `cloudbuild.builds.*` permissions).
+- The SA has `logging.logWriter` (the documented prerequisite).
+- The caller has `iam.serviceAccountUser` (so it can actAs the SA).
+- The SA was created ~2 minutes before the second attempt, so this is not new-SA replication lag.
+
+Hypotheses still on the table (haven't tested any yet, want to discuss before more changes):
+
+1. **`cloudbuild.builds.builder` may not include the specific "I can be a trigger identity" sub-permission.** Some Cloud Build docs reference `roles/cloudbuild.serviceAgent` or `roles/cloudbuild.workerPoolUser` for the trigger SA in newer 2nd-gen Cloud Build setups. Worth checking whether we're hitting a gen2 trigger requirement.
+2. **DeveloperConnect connection-level IAM.** The connection `connection-bu2d4s3` might need the runtime SA explicitly granted as a `developerconnect.connectionUser` (or similar) on the connection, separate from project-level roles.
+3. **Project-level `cloudbuild.builds.builder` may require the SA to also be a member of the Cloud Build P4SA's allowed-impersonators list.** This is a less common requirement but documented for cross-project triggers.
+4. **The error may originate at validate-time inside Cloud Build before the API call result, and the wording is misleading -- the actual missing permission could belong to the BACKEND SA, not the runtime SA.** Reproducing manually via `gcloud builds triggers create` outside the agent loop would prove or disprove this in 30s.
+
+### Recommended next step (not taken yet pending decision)
+
+Drop into Cloud Shell and try to manually create an equivalent trigger via `gcloud builds triggers create` against the live `IDS-Central/idso-app-smoke-cb-3` repo with `--service-account=projects/reconciliation-dashboard/serviceAccounts/idso-<app>-runtime@...` to see whether the failure is:
+
+- **(a)** in the handler's API call shape (something the handler is doing wrong), or
+- **(b)** in the actual IAM setup itself (`gcloud` with my user identity should succeed even without the runtime SA fix; if `gcloud` ALSO fails when impersonating the backend SA, we know it's a backend-SA-side missing permission).
+
+This is a 5-minute experiment that would isolate the bug before another code change.
+
+### Test artifact cleanup
+
+- Runtime SA `idso-smoke-cb-2-runtime@` deleted.
+- DeveloperConnect gitRepositoryLink `IDS-Central-idso-app-smoke-cb-2` -- DELETE LRO kicked off.
+- GitHub repos `IDS-Central/idso-app-smoke-cb-1` AND `IDS-Central/idso-app-smoke-cb-2` -- still present, both need manual deletion.
+
+### Status of 2b parts (still corrected)
+
+- [x] 2b part 1/4 -- iam_create_sa (now with five roles)
+- [x] 2b part 2/4 -- gh_create_repo
+- [~] 2b part 3/4 -- cloudbuild_create_trigger (handler code shipped, IAM widened to Option A, smoke test STILL blocked, root cause not yet pinned down)
+- [ ] 2b part 4/4 -- cloudrun_deploy
