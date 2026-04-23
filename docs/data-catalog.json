@@ -1,13 +1,14 @@
 {
   "project": "reconciliation-dashboard",
-  "generatedAt": "2026-04-23T01:56:34.072Z",
+  "generatedAt": "2026-04-23T02:38:52.454Z",
   "datasets": {
     "ADP_system": {
+      "description": "ADP payroll and HR data. Ingested from ADP Workforce Now exports. Covers\npayroll line items (every pay stub row), employee dimension (roster with\ndepartment / job title / cost center), and timecards. Use this for any\nquestion about compensation, headcount, hours worked, or allocations of\npayroll to departments / cost centers / GL accounts.\n",
       "tables": {
         "adp_payroll_output": {
           "tableId": "adp_payroll_output",
           "type": "TABLE",
-          "description": "ADP payroll output - one row per employee × payment × department allocation",
+          "description": "Payroll fact table: one row per employee per pay-period per pay\ncategory (earnings, deductions, taxes). Includes pay period start/end,\npayment date, employee name, department, business unit, job title,\nlocation, and GL account code. This is the primary source for\n\"what did we pay whom, when, and for what GL line.\"\n",
           "numRows": 102447,
           "numBytes": 44582927,
           "lastModifiedTime": "2026-04-21T21:02:55.153Z",
@@ -210,7 +211,7 @@
         "employees_dim": {
           "tableId": "employees_dim",
           "type": "TABLE",
-          "description": null,
+          "description": "Active employee dimension: one row per employee with current\nidentifying and HR attributes (name, email, hire/termination date,\nemployment status, job title, department, cost center, GL account).\nJoin on employee_id from adp_payroll_output or timecards_dim.\n",
           "numRows": 4577,
           "numBytes": 403308,
           "lastModifiedTime": "2026-04-02T18:26:14.007Z",
@@ -305,7 +306,7 @@
         "employees_dim_staging": {
           "tableId": "employees_dim_staging",
           "type": "TABLE",
-          "description": null,
+          "description": "Staging copy of employees_dim used during the ADP sync pipeline. Do\nnot query directly for reporting; use employees_dim instead.\n",
           "numRows": 4577,
           "numBytes": 403308,
           "lastModifiedTime": "2026-04-02T18:26:08.547Z",
@@ -400,7 +401,7 @@
         "payroll_sync_state": {
           "tableId": "payroll_sync_state",
           "type": "TABLE",
-          "description": null,
+          "description": "Operational bookkeeping for the ADP payroll sync pipeline (last\nprocessed item, batch cursors). Not useful for business reporting.\n",
           "numRows": 1,
           "numBytes": 79,
           "lastModifiedTime": "2026-04-07T19:00:39.572Z",
@@ -441,7 +442,7 @@
         "sync_metadata": {
           "tableId": "sync_metadata",
           "type": "TABLE",
-          "description": null,
+          "description": "Operational bookkeeping for the ADP sync pipeline (run-level status,\nbatch counts, timestamps). Not useful for business reporting.\n",
           "numRows": 2,
           "numBytes": 100,
           "lastModifiedTime": "2026-04-07T14:29:17.630Z",
@@ -488,7 +489,7 @@
         "timecards_dim": {
           "tableId": "timecards_dim",
           "type": "TABLE",
-          "description": null,
+          "description": "Timecard facts: one row per employee per pay period with total hours\nworked. Join to employees_dim on employee_id for name / department\ncontext. Empty or near-empty for salaried employees.\n",
           "numRows": 0,
           "numBytes": 0,
           "lastModifiedTime": "2026-03-26T19:52:10.572Z",
@@ -547,11 +548,12 @@
       }
     },
     "Dentira_system": {
+      "description": "Dentira dental-supplies e-procurement data. Ingested from the Dentira\nplatform that IDSO practices use to order dental supplies, equipment,\nand services from vendors. Covers invoices, orders, line items, the\npractice catalog, and the supplier / vendor catalog. Use this for\nsupply-chain spend, vendor performance, supplier consolidation, and\npractice-level ordering analysis.\n",
       "tables": {
         "dentira_invoice_items": {
           "tableId": "dentira_invoice_items",
           "type": "TABLE",
-          "description": null,
+          "description": "Supplier invoice line items: one row per line on each invoice with\nSKU, item name, unit price, quantity, total, and GL account code.\nJoin to dentira_invoices on invoice_number.\n",
           "numRows": 31085,
           "numBytes": 9529704,
           "lastModifiedTime": "2026-04-21T15:33:08.560Z",
@@ -712,7 +714,7 @@
         "dentira_invoices": {
           "tableId": "dentira_invoices",
           "type": "TABLE",
-          "description": null,
+          "description": "Supplier invoice headers: one row per invoice received through\nDentira. Includes invoice number, date, status, supplier, vendor,\nclinic/practice, and vendor/supplier cross-references.\n",
           "numRows": 3558,
           "numBytes": 643245,
           "lastModifiedTime": "2026-04-21T15:33:18.901Z",
@@ -807,7 +809,7 @@
         "dentira_load_audit": {
           "tableId": "dentira_load_audit",
           "type": "TABLE",
-          "description": null,
+          "description": "Operational bookkeeping for the Dentira ingestion pipeline (load\ntimestamps, row counts, error messages, load status). Not useful\nfor business reporting.\n",
           "numRows": 12,
           "numBytes": 1369,
           "lastModifiedTime": "2026-04-21T15:33:38.517Z",
@@ -884,7 +886,7 @@
         "dentira_orders": {
           "tableId": "dentira_orders",
           "type": "TABLE",
-          "description": null,
+          "description": "Supplier order headers (purchase orders placed through Dentira). One\nrow per order with practice, supplier, vendor, order date, received\ndate, status, approver, and catalog flags.\n",
           "numRows": 2658,
           "numBytes": 598742,
           "lastModifiedTime": "2026-04-21T15:33:16.749Z",
@@ -1015,7 +1017,7 @@
         "dentira_orders_items": {
           "tableId": "dentira_orders_items",
           "type": "TABLE",
-          "description": null,
+          "description": "Order line items: one row per line on each purchase order with\nproduct, item name, UOM, category, manufacturer, unit price,\nordered quantity, received quantity, and total.\n",
           "numRows": 19355,
           "numBytes": 6337293,
           "lastModifiedTime": "2026-04-21T15:33:06.759Z",
@@ -1182,7 +1184,7 @@
         "dentira_practices": {
           "tableId": "dentira_practices",
           "type": "TABLE",
-          "description": null,
+          "description": "Practice (clinic) dimension for Dentira: location_id, clinic name,\nemail. Small lookup table used to join orders / invoices to a\npractice.\n",
           "numRows": 86,
           "numBytes": 4281,
           "lastModifiedTime": "2026-04-21T15:33:28.930Z",
@@ -1211,7 +1213,7 @@
         "dentira_suppliers": {
           "tableId": "dentira_suppliers",
           "type": "TABLE",
-          "description": null,
+          "description": "Supplier / vendor dimension: supplier_id, supplier name, vendor_id,\nvendor_name, vendor_alias. Lookup for Dentira orders and invoices.\n",
           "numRows": 79,
           "numBytes": 2901,
           "lastModifiedTime": "2026-04-21T15:33:35.961Z",
@@ -1246,11 +1248,12 @@
       }
     },
     "PMS_system": {
+      "description": "Practice-Management-System payment transactions AND the reconciliation\nengine that matches them to the bank side. PMSTxn holds dental\ninsurance carrier payments, patient payments, and other receipts that\nwere recorded in the practice-management system. The rest of the\ndataset (ReconBatches, BatchRankings, Criteria*_Candidates, FuzzyMap,\nLLM_BatchPayload, LLM_RankResults, Match_Config, Reconciliations,\nStrictMatch) is the IDSO-built ML/LLM pipeline that matches each PMS\npayment to the corresponding bank deposit in Sage Intacct. Use PMSTxn\nfor PMS-side revenue questions; use Reconciliations or Reconciliation_view\nfor \"what got matched vs. what is still open.\"\n",
       "tables": {
         "AcceptedMatches": {
           "tableId": "AcceptedMatches",
           "type": "TABLE",
-          "description": null,
+          "description": "Historical record of matches that were accepted (by human or auto-rule) in the reconciliation workflow. Join to PMSTxn and BankTxn on MatchID to get the matched pair. Status / UndoneBy / UndoReason let you see matches that were later reversed.",
           "numRows": 67,
           "numBytes": 12747,
           "lastModifiedTime": "2026-03-24T20:19:08.999Z",
@@ -1321,7 +1324,7 @@
         "AuditLogs": {
           "tableId": "AuditLogs",
           "type": "TABLE",
-          "description": null,
+          "description": "Append-only audit trail of user actions in the reconciliation dashboard: who did what (Action, EntityType, EntityID), when, from which IP, with changes and notes. Use for compliance, forensics, and \"who changed X\" questions.",
           "numRows": 82,
           "numBytes": 17565,
           "lastModifiedTime": "2026-03-24T20:30:35.399Z",
@@ -1386,7 +1389,7 @@
         "BankList_FuzzyNorm": {
           "tableId": "BankList_FuzzyNorm",
           "type": "TABLE",
-          "description": null,
+          "description": "Fuzzy-normalised bank payer list with PMS mapping candidates and soundex/phonetic keys (n2, n3). Input to the fuzzy matcher.",
           "numRows": 841,
           "numBytes": 44775,
           "lastModifiedTime": "2025-11-23T11:22:15.866Z",
@@ -1456,7 +1459,7 @@
         "BankTxn": {
           "tableId": "BankTxn",
           "type": "TABLE",
-          "description": null,
+          "description": "Raw bank transactions as ingested (before normalisation). One row per bank line with Bank_Transaction_ID, Date, Transaction_Type, Payment_Description, Amount, Status, Bank_Acct_No, location_id, payer_name, pms_mapping. This is the PMS_system view of the bank side; see Sage_system_v2.sage_bank_transactions_v2 for the canonical Sage export.",
           "numRows": 48865,
           "numBytes": 27389386,
           "lastModifiedTime": "2026-04-23T01:40:37.589Z",
@@ -1551,7 +1554,7 @@
         "BankTxn_CSV_files_Upload_Log": {
           "tableId": "BankTxn_CSV_files_Upload_Log",
           "type": "TABLE",
-          "description": null,
+          "description": "Per-file upload audit for bank CSVs: filename, Bank_Acct_No, inserted_rows, skipped_loan_sweep_rows, processed_at, LogID. Operational only.",
           "numRows": 3759,
           "numBytes": 457593,
           "lastModifiedTime": "2026-04-22T10:00:58.294Z",
@@ -1604,7 +1607,7 @@
         "BankTxn_CleanTemp": {
           "tableId": "BankTxn_CleanTemp",
           "type": "TABLE",
-          "description": null,
+          "description": "Temporary table used by the bank-txn cleaning step. Not authoritative.",
           "numRows": 48865,
           "numBytes": 5309042,
           "lastModifiedTime": "2026-04-23T01:38:18.478Z",
@@ -1627,7 +1630,7 @@
         "BankTxn_Excluded_Archive": {
           "tableId": "BankTxn_Excluded_Archive",
           "type": "TABLE",
-          "description": null,
+          "description": "Bank transactions explicitly excluded from reconciliation (loans, sweeps, transfers). Kept for audit so exclusions are reversible.",
           "numRows": 19446,
           "numBytes": 3945510,
           "lastModifiedTime": "2025-11-20T07:32:30.241Z",
@@ -1710,7 +1713,7 @@
         "BankTxn_FuzzyNorm": {
           "tableId": "BankTxn_FuzzyNorm",
           "type": "TABLE",
-          "description": null,
+          "description": "Fuzzy-normalised BankTxn with phonetic / soundex keys (n1, s1) for the fuzzy matcher. Intermediate; do not query for reporting.",
           "numRows": 1052,
           "numBytes": 83727,
           "lastModifiedTime": "2025-11-23T11:22:14.234Z",
@@ -1745,7 +1748,7 @@
         "BankTxn_MapFuzzy": {
           "tableId": "BankTxn_MapFuzzy",
           "type": "TABLE",
-          "description": null,
+          "description": "Per-row mapping result from the fuzzy matcher (ID -> PMS_Mapping). Intermediate.",
           "numRows": 0,
           "numBytes": 0,
           "lastModifiedTime": "2025-11-21T12:47:16.092Z",
@@ -1768,7 +1771,7 @@
         "BankTxn_MapStrict": {
           "tableId": "BankTxn_MapStrict",
           "type": "TABLE",
-          "description": null,
+          "description": "Per-row mapping result from the strict matcher (ID -> PMS_Mapping). Intermediate.",
           "numRows": 0,
           "numBytes": 0,
           "lastModifiedTime": "2025-11-21T12:47:14.156Z",
@@ -1791,7 +1794,7 @@
         "BankTxn_MapTemp": {
           "tableId": "BankTxn_MapTemp",
           "type": "TABLE",
-          "description": null,
+          "description": "Temporary mapping table during BankTxn processing. Intermediate.",
           "numRows": 63,
           "numBytes": 1829,
           "lastModifiedTime": "2026-04-23T01:40:30.622Z",
@@ -1849,7 +1852,7 @@
         "BankTxn_RematchTemp": {
           "tableId": "BankTxn_RematchTemp",
           "type": "TABLE",
-          "description": null,
+          "description": "Temporary working table used when re-running the matcher against a bounded subset of bank txns. Intermediate.",
           "numRows": 1,
           "numBytes": 35,
           "lastModifiedTime": "2025-11-21T12:46:12.220Z",
@@ -1872,7 +1875,7 @@
         "BankTxn_Staging": {
           "tableId": "BankTxn_Staging",
           "type": "TABLE",
-          "description": null,
+          "description": "Staging copy of BankTxn before it is promoted to BankTxn / BankTxn_Normalised. Includes __insertIdContentHash for dedupe. Operational only.",
           "numRows": 0,
           "numBytes": 0,
           "lastModifiedTime": "2026-01-09T11:20:39.601Z",
@@ -1937,7 +1940,7 @@
         "Bank_Payer_List": {
           "tableId": "Bank_Payer_List",
           "type": "EXTERNAL",
-          "description": null,
+          "description": "Raw observed-bank-payer list (Payer_Name_Description + PMS_Mapping) before normalisation. Superseded by BankPayersList_Normalised.",
           "numRows": 0,
           "numBytes": 0,
           "lastModifiedTime": "2025-08-26T18:46:08.099Z",
@@ -1960,7 +1963,7 @@
         "Bank_Transaction_Timing": {
           "tableId": "Bank_Transaction_Timing",
           "type": "EXTERNAL",
-          "description": null,
+          "description": "Mapping rules that classify bank txns by PMS_Mapping + priority date windows (+ exclude dates, possible merchant fee). Used by the matcher to enforce business-day windows.",
           "numRows": 0,
           "numBytes": 0,
           "lastModifiedTime": "2026-01-08T19:45:25.865Z",
@@ -1995,7 +1998,7 @@
         "Bank_Transaction_Timing_BQ": {
           "tableId": "Bank_Transaction_Timing_BQ",
           "type": "TABLE",
-          "description": null,
+          "description": "Profiling / timing metadata for SageIntacct_BankTransactions loads.\nOperational only.\n",
           "numRows": 56,
           "numBytes": 1189,
           "lastModifiedTime": "2026-04-23T01:24:05.741Z",
@@ -2030,7 +2033,7 @@
         "BatchDecisions": {
           "tableId": "BatchDecisions",
           "type": "TABLE",
-          "description": null,
+          "description": "Per-batch decision outcomes: DecisionID, Decision, DecisionBy,\nDecisionAt, Reason. Links the human/LLM approval to a batch.\n",
           "numRows": 0,
           "numBytes": 0,
           "lastModifiedTime": "2025-12-14T05:12:29.775Z",
@@ -2083,7 +2086,7 @@
         "BatchRankings": {
           "tableId": "BatchRankings",
           "type": "TABLE",
-          "description": null,
+          "description": "Per-batch candidate rankings produced by the matching engine, with\nrank, confidence, and LLM rationale. Drives which candidates get\nsurfaced first in the review UI.\n",
           "numRows": 0,
           "numBytes": 0,
           "lastModifiedTime": "2026-01-14T19:20:20.007Z",
@@ -2148,7 +2151,7 @@
         "Criteria1_Candidates": {
           "tableId": "Criteria1_Candidates",
           "type": "VIEW",
-          "description": null,
+          "description": "Candidate PMS-Bank pairs generated by matching rule set 1 (typically\nexact amount + date proximity). Consumed by the downstream ranking /\nbatching logic.\n",
           "numRows": 0,
           "numBytes": 0,
           "lastModifiedTime": "2025-12-09T17:53:28.020Z",
@@ -2213,7 +2216,7 @@
         "Criteria2_Candidates": {
           "tableId": "Criteria2_Candidates",
           "type": "VIEW",
-          "description": null,
+          "description": "Candidate PMS-Bank pairs generated by matching rule set 2 (looser\ndate window, partial description match).\n",
           "numRows": 0,
           "numBytes": 0,
           "lastModifiedTime": "2025-12-09T18:35:46.802Z",
@@ -2350,7 +2353,7 @@
         "Criteria3_Candidates": {
           "tableId": "Criteria3_Candidates",
           "type": "VIEW",
-          "description": null,
+          "description": "Candidate PMS-Bank pairs generated by matching rule set 3 (fuzzy /\nmulti-field).\n",
           "numRows": 0,
           "numBytes": 0,
           "lastModifiedTime": "2025-12-09T18:39:10.419Z",
@@ -2487,7 +2490,7 @@
         "DailyReconciliationSummary": {
           "tableId": "DailyReconciliationSummary",
           "type": "TABLE",
-          "description": null,
+          "description": "Daily rollup of reconciliation status: per-day counts of matched /\nunmatched / reviewed pairs. Drives the ops dashboard KPIs.\n",
           "numRows": 1,
           "numBytes": 40,
           "lastModifiedTime": "2026-04-23T01:08:05.254Z",
@@ -2528,7 +2531,7 @@
         "FuzzyMap": {
           "tableId": "FuzzyMap",
           "type": "TABLE",
-          "description": null,
+          "description": "Fuzzy-match lookup table between PMS and bank payer strings (carrier\nname variants, payer aliases). Used to bridge spelling / formatting\ndifferences before candidate ranking.\n",
           "numRows": 1052,
           "numBytes": 38346,
           "lastModifiedTime": "2025-11-23T11:22:18.010Z",
@@ -2551,7 +2554,7 @@
         "LLM_BatchPayload": {
           "tableId": "LLM_BatchPayload",
           "type": "VIEW",
-          "description": null,
+          "description": "Raw input payload sent to the LLM for each reconciliation batch\n(candidates + context). Useful for replaying or debugging AI\ndecisions.\n",
           "numRows": 0,
           "numBytes": 0,
           "lastModifiedTime": "2025-12-10T10:44:44.299Z",
@@ -2598,7 +2601,7 @@
         "LLM_RankResults": {
           "tableId": "LLM_RankResults",
           "type": "TABLE",
-          "description": null,
+          "description": "Raw LLM ranking output per batch: ranked candidates with confidence\nand rationale. Joined into BatchRankings for downstream use.\n",
           "numRows": 5,
           "numBytes": 21065,
           "lastModifiedTime": "2025-12-16T20:21:31.737Z",
@@ -2699,7 +2702,7 @@
         "Match_Config": {
           "tableId": "Match_Config",
           "type": "TABLE",
-          "description": null,
+          "description": "Configuration for the matching engine: per-channel tolerance cents,\nbusiness-day windows, criteria toggles. Edit here to tune the\nmatcher without code changes.\n",
           "numRows": 194,
           "numBytes": 6721,
           "lastModifiedTime": "2025-10-07T13:30:04.369Z",
@@ -2728,7 +2731,7 @@
         "PMSTxn": {
           "tableId": "PMSTxn",
           "type": "TABLE",
-          "description": null,
+          "description": "Raw payment transactions from practice-management systems. One row\nper payment: carrier_name, claim_id, amount, practice_id,\npayment_type, status, bank_vendor, PMS_Date. This is the PMS side\nof reconciliation (vs. SageIntacct_BankTransactions on the bank\nside).\n",
           "numRows": 1477731,
           "numBytes": 488633553,
           "lastModifiedTime": "2026-04-22T23:30:12.756Z",
@@ -2817,7 +2820,7 @@
         "PMS_Criteria2": {
           "tableId": "PMS_Criteria2",
           "type": "VIEW",
-          "description": null,
+          "description": "PMS-side intermediate used by the Criteria 2 matcher. Aggregates\nPMS transactions by practice / vendor / payment type before\ncandidate generation.\n",
           "numRows": 0,
           "numBytes": 0,
           "lastModifiedTime": "2025-12-09T12:33:00.480Z",
@@ -2870,7 +2873,7 @@
         "ReconBatchItems": {
           "tableId": "ReconBatchItems",
           "type": "TABLE",
-          "description": null,
+          "description": "Items (candidate PMS x Bank pairs) inside each reconciliation batch\nwith status, AI flag, flag reason, and computed flag fields. Join\nto ReconBatches on BatchID.\n",
           "numRows": 18320,
           "numBytes": 4486163,
           "lastModifiedTime": "2026-04-22T09:33:19.710Z",
@@ -2941,7 +2944,7 @@
         "ReconBatchItems_UI": {
           "tableId": "ReconBatchItems_UI",
           "type": "VIEW",
-          "description": null,
+          "description": "UI-facing view of ReconBatchItems for the reconciliation dashboard.\n",
           "numRows": 0,
           "numBytes": 0,
           "lastModifiedTime": "2025-12-09T14:51:56.328Z",
@@ -3024,7 +3027,7 @@
         "ReconBatches": {
           "tableId": "ReconBatches",
           "type": "TABLE",
-          "description": null,
+          "description": "Batches of reconciliation candidates produced by the matching engine.\nOne row per batch run; join to ReconBatchItems for the items\ninside each batch.\n",
           "numRows": 3946,
           "numBytes": 1893806,
           "lastModifiedTime": "2026-04-22T23:38:10.407Z",
@@ -3125,7 +3128,7 @@
         "ReconBatches_UI": {
           "tableId": "ReconBatches_UI",
           "type": "VIEW",
-          "description": null,
+          "description": "UI-facing view of ReconBatches, same shape with formatting /\nlabels tuned for the internal reconciliation dashboard app.\n",
           "numRows": 0,
           "numBytes": 0,
           "lastModifiedTime": "2026-01-04T09:52:22.273Z",
@@ -3220,7 +3223,7 @@
         "ReconCheckpoint": {
           "tableId": "ReconCheckpoint",
           "type": "TABLE",
-          "description": null,
+          "description": "Checkpoint markers for long-running reconciliation jobs (last\nprocessed bank txn id). Operational only.\n",
           "numRows": 1,
           "numBytes": 125,
           "lastModifiedTime": "2026-04-22T23:38:12.654Z",
@@ -3249,7 +3252,7 @@
         "ReconciliationApprovals": {
           "tableId": "ReconciliationApprovals",
           "type": "TABLE",
-          "description": null,
+          "description": "Approval audit trail for reconciliations: who approved which\nbatch/txn, when, and any attached notes.\n",
           "numRows": 2,
           "numBytes": 142,
           "lastModifiedTime": "2025-10-24T07:35:29.959Z",
@@ -3296,7 +3299,7 @@
         "Reconciliation_view2": {
           "tableId": "Reconciliation_view2",
           "type": "VIEW",
-          "description": null,
+          "description": "Convenience view that joins Reconciliations back to the underlying\nPMS and bank rows (with location, practice, amount, carrier). Use\nfor reporting when you need the matched pair plus context in one\nrow.\n",
           "numRows": 0,
           "numBytes": 0,
           "lastModifiedTime": "2025-12-09T12:34:57.502Z",
@@ -3373,7 +3376,7 @@
         "Reconciliations": {
           "tableId": "Reconciliations",
           "type": "TABLE",
-          "description": null,
+          "description": "Authoritative match results: one row per reconciled pair\n(PMS payment x Bank transaction) with amount applied, created/updated\ntimestamps, status, modification history, and rejection reason.\nStart here for \"what is matched, what is still open\" questions.\n",
           "numRows": 914,
           "numBytes": 196890,
           "lastModifiedTime": "2026-04-22T09:57:21.938Z",
@@ -3480,7 +3483,7 @@
         "SageIntacct_BankTransactions": {
           "tableId": "SageIntacct_BankTransactions",
           "type": "TABLE",
-          "description": null,
+          "description": "Bank-side view of transactions exported from Sage Intacct, filtered\nand enriched for the matching engine. One row per bank line with\naccount, posting date, amount, payer, description, and transaction\ntype. Pair with PMSTxn for reconciliation queries.\n",
           "numRows": 0,
           "numBytes": 0,
           "lastModifiedTime": "2026-02-19T13:49:54.512Z",
@@ -3587,7 +3590,7 @@
         "StrictMatch": {
           "tableId": "StrictMatch",
           "type": "TABLE",
-          "description": null,
+          "description": "Strict exact-match candidates (amount + date + identifier equality).\nHighest-confidence subset, usually auto-approved.\n",
           "numRows": 98,
           "numBytes": 3639,
           "lastModifiedTime": "2025-11-23T11:22:09.894Z",
@@ -3610,7 +3613,7 @@
         "clean_txn": {
           "tableId": "clean_txn",
           "type": "TABLE",
-          "description": null,
+          "description": "Cleaned / normalised copy of PMSTxn and bank rows used as the input\nto the matching pipeline. Do not query for reporting; use PMSTxn\nor SageIntacct_BankTransactions.\n",
           "numRows": 583,
           "numBytes": 106594,
           "lastModifiedTime": "2025-11-19T14:25:01.038Z",
@@ -3651,7 +3654,7 @@
         "final_cleaned_result": {
           "tableId": "final_cleaned_result",
           "type": "TABLE",
-          "description": null,
+          "description": "Final cleaned output of the reconciliation pipeline for a run.\nTypically consumed by downstream dashboards.\n",
           "numRows": 583,
           "numBytes": 88049,
           "lastModifiedTime": "2025-11-19T13:52:36.468Z",
@@ -3686,7 +3689,7 @@
         "location_id_mapping": {
           "tableId": "location_id_mapping",
           "type": "EXTERNAL",
-          "description": null,
+          "description": "Mapping from raw PMS location identifiers to IDSO location_id. Used\nto normalise practice-level keys across PMS vendors.\n",
           "numRows": 0,
           "numBytes": 0,
           "lastModifiedTime": "2025-09-03T22:32:57.896Z",
@@ -3715,7 +3718,7 @@
         "location_xwalk": {
           "tableId": "location_xwalk",
           "type": "TABLE",
-          "description": null,
+          "description": "Cross-walk between bank-account-level location identifiers and PMS\nlocation_id. Joins bank rows (where only an account is present) to\na practice.\n",
           "numRows": 17,
           "numBytes": 859,
           "lastModifiedTime": "2025-09-22T21:08:26.566Z",
@@ -3744,7 +3747,7 @@
         "mapping_norm": {
           "tableId": "mapping_norm",
           "type": "TABLE",
-          "description": null,
+          "description": "Normalised payer-name -> canonical-vendor mapping used by the\nfuzzy matcher. Regenerated from dim_mappings.bank_description_*.\n",
           "numRows": 837,
           "numBytes": 50612,
           "lastModifiedTime": "2025-11-19T10:42:44.227Z",
@@ -3779,7 +3782,7 @@
         "sage_bank_account_mapping": {
           "tableId": "sage_bank_account_mapping",
           "type": "TABLE",
-          "description": null,
+          "description": "Bank account id (Sage) -> practice / entity mapping. Same idea as\nlocation_xwalk but at the bank-account grain.\n",
           "numRows": 0,
           "numBytes": 0,
           "lastModifiedTime": "2026-03-27T12:59:58.423Z",
@@ -3814,7 +3817,7 @@
         "transaction_types_custom_categories_raw": {
           "tableId": "transaction_types_custom_categories_raw",
           "type": "EXTERNAL",
-          "description": null,
+          "description": "User-defined overrides for transaction type / category classification\nused in reconciliation. Tweak here to reclassify payment types.\n",
           "numRows": 0,
           "numBytes": 0,
           "lastModifiedTime": "2025-08-20T13:10:36.365Z",
@@ -3879,7 +3882,7 @@
         "update_mapped": {
           "tableId": "update_mapped",
           "type": "TABLE",
-          "description": null,
+          "description": "Audit log of mapping-table updates (when a cross-walk row was added\nor edited, by whom).\n",
           "numRows": 583,
           "numBytes": 83633,
           "lastModifiedTime": "2025-11-19T14:25:03.803Z",
@@ -3920,11 +3923,12 @@
       }
     },
     "Sage_system_v2": {
+      "description": "Sage Intacct general ledger and bank data. This is the authoritative\naccounting source: every GL journal entry line and every bank-side\ntransaction as booked in Sage. Join gl_journal_entry_lines to the\ndim_* columns to slice by department, location, vendor, customer,\nproject, employee, item, or class. Use for any finance, close,\ncash-flow, or revenue-by-dimension question.\n",
       "tables": {
         "bank_id_practice_mapping": {
           "tableId": "bank_id_practice_mapping",
           "type": "TABLE",
-          "description": null,
+          "description": "Bank account -> practice crosswalk at the Sage level. Join\nsage_bank_transactions_v2.bank_account_id to get a practice_id.\n",
           "numRows": 72,
           "numBytes": 3261,
           "lastModifiedTime": "2026-03-10T19:20:37.807Z",
@@ -3953,7 +3957,7 @@
         "bank_transaction_summaries": {
           "tableId": "bank_transaction_summaries",
           "type": "TABLE",
-          "description": null,
+          "description": "Rolled-up bank transaction summaries (by bank, day, and posting\nstatus). Faster for dashboards than scanning the raw txn table.\n",
           "numRows": 0,
           "numBytes": 0,
           "lastModifiedTime": "2026-03-03T15:28:38.918Z",
@@ -3994,7 +3998,7 @@
         "entry_tracking": {
           "tableId": "entry_tracking",
           "type": "TABLE",
-          "description": null,
+          "description": "Tracking table: which GL journal entries have been picked up by\ndownstream pipelines (reconciliation, reporting). Operational only.\n",
           "numRows": 0,
           "numBytes": 0,
           "lastModifiedTime": "2026-03-03T15:28:28.311Z",
@@ -4029,7 +4033,7 @@
         "gl_journal_entry_lines": {
           "tableId": "gl_journal_entry_lines",
           "type": "TABLE",
-          "description": null,
+          "description": "The GL fact: one row per journal-entry line with GL account, debit/\ncredit amount, dimension keys (department, location, vendor,\ncustomer, project, employee, item, class), currency, and\nreconciliation status. The primary source for financial reporting.\n",
           "numRows": 967036,
           "numBytes": 328183090,
           "lastModifiedTime": "2026-04-21T19:06:07.516Z",
@@ -4310,7 +4314,7 @@
         "sage_bank_transactions_v2": {
           "tableId": "sage_bank_transactions_v2",
           "type": "TABLE",
-          "description": null,
+          "description": "Bank-side transactions as exported from Sage Intacct bank feeds.\nOne row per bank line with account, posting date, amount, payer,\ndescription. Pairs with PMS_system.PMSTxn in the reconciliation\npipeline.\n",
           "numRows": 89207,
           "numBytes": 38723034,
           "lastModifiedTime": "2026-04-22T07:27:29.781Z",
@@ -4423,7 +4427,7 @@
         "sync_metadata": {
           "tableId": "sync_metadata",
           "type": "TABLE",
-          "description": null,
+          "description": "Operational bookkeeping for the Sage sync pipeline. Not for\nreporting.\n",
           "numRows": 569,
           "numBytes": 27312,
           "lastModifiedTime": "2026-04-22T08:28:37.544Z",
@@ -4458,7 +4462,7 @@
         "sync_state": {
           "tableId": "sync_state",
           "type": "TABLE",
-          "description": null,
+          "description": "Operational sync cursor for bank-side rows. Not for reporting.\n",
           "numRows": 1,
           "numBytes": 96,
           "lastModifiedTime": "2026-04-22T07:27:33.070Z",
@@ -4511,7 +4515,7 @@
         "sync_state_gl": {
           "tableId": "sync_state_gl",
           "type": "TABLE",
-          "description": null,
+          "description": "Operational sync cursor for GL rows. Not for reporting.\n",
           "numRows": 1,
           "numBytes": 41,
           "lastModifiedTime": "2026-03-23T13:35:30.015Z",
@@ -4552,7 +4556,7 @@
         "temp_gl_lines_1773341871": {
           "tableId": "temp_gl_lines_1773341871",
           "type": "TABLE",
-          "description": null,
+          "description": "Temporary scratch table from a specific GL backfill run (suffix is\nthe run id). Not authoritative; do not query for reporting.\n",
           "numRows": 250,
           "numBytes": 80407,
           "lastModifiedTime": "2026-03-12T18:57:53.007Z",
@@ -4833,11 +4837,12 @@
       }
     },
     "dim_mappings": {
+      "description": "Shared dimension / lookup tables used across the other datasets\n(especially PMS_system's reconciliation engine). Bank-description\nparsing rules, payment-category mappings, bank-vendor rules, and\nPMS provider / location mappings. Treat as slowly-changing reference\ndata. Backup tables (\"..._backup_YYYYMMDD\") are point-in-time\nsnapshots retained for audit; use the non-backup version for current\nlookups.\n",
       "tables": {
         "bank_account_mapping": {
           "tableId": "bank_account_mapping",
           "type": "TABLE",
-          "description": null,
+          "description": "Canonical map from bank_account_id -> practice_name / location_id /\nupdated_by / updated_at. Used to put a practice label on any bank\nrow.\n",
           "numRows": 176,
           "numBytes": 11383,
           "lastModifiedTime": "2026-04-09T08:20:15.489Z",
@@ -4878,7 +4883,7 @@
         "bank_description_mapping": {
           "tableId": "bank_description_mapping",
           "type": "TABLE",
-          "description": null,
+          "description": "Rules that parse a raw bank transaction description into vendor /\ncategory / is_carrier flag / approval status. Used by PMS_system\nfuzzy matching.\n",
           "numRows": 70292,
           "numBytes": 19058801,
           "lastModifiedTime": "2026-04-22T07:30:17.989Z",
@@ -4943,7 +4948,7 @@
         "bank_description_mapping_backup_20260409": {
           "tableId": "bank_description_mapping_backup_20260409",
           "type": "TABLE",
-          "description": null,
+          "description": "Point-in-time snapshot of bank_description_mapping taken 2026-04-09.\nAudit only.\n",
           "numRows": 65876,
           "numBytes": 17746188,
           "lastModifiedTime": "2026-04-09T19:10:20.680Z",
@@ -5008,7 +5013,7 @@
         "bank_description_mapping_backup_20260410": {
           "tableId": "bank_description_mapping_backup_20260410",
           "type": "TABLE",
-          "description": null,
+          "description": "Point-in-time snapshot of bank_description_mapping taken 2026-04-10.\nAudit only.\n",
           "numRows": 65876,
           "numBytes": 17580400,
           "lastModifiedTime": "2026-04-10T00:54:07.304Z",
@@ -5073,7 +5078,7 @@
         "bank_description_staging": {
           "tableId": "bank_description_staging",
           "type": "TABLE",
-          "description": null,
+          "description": "Staging area for proposed bank_description_mapping changes before\nthey get promoted to the live table. Includes confidence,\nfirst_seen_at, processed_at.\n",
           "numRows": 59121,
           "numBytes": 15289826,
           "lastModifiedTime": "2026-04-22T07:30:21.380Z",
@@ -5120,7 +5125,7 @@
         "bank_vendor_rules": {
           "tableId": "bank_vendor_rules",
           "type": "TABLE",
-          "description": null,
+          "description": "Prefix / vendor rules table: maps raw description prefixes to\ncanonical vendors. Paired with bank_description_mapping for\nbank-side normalisation.\n",
           "numRows": 9565,
           "numBytes": 1657585,
           "lastModifiedTime": "2026-04-07T16:28:11.102Z",
@@ -5167,7 +5172,7 @@
         "payment_category_mapping": {
           "tableId": "payment_category_mapping",
           "type": "TABLE",
-          "description": null,
+          "description": "Maps normalised payment types to a GL category / ledger category,\nscoped by location and vendor. Drives auto-categorisation of\nincoming bank rows.\n",
           "numRows": 1181,
           "numBytes": 204410,
           "lastModifiedTime": "2026-04-22T09:30:11.274Z",
@@ -5244,7 +5249,7 @@
         "payment_category_mapping_backup_20260409": {
           "tableId": "payment_category_mapping_backup_20260409",
           "type": "TABLE",
-          "description": null,
+          "description": "Point-in-time snapshot of payment_category_mapping taken\n2026-04-09. Audit only.\n",
           "numRows": 1181,
           "numBytes": 204435,
           "lastModifiedTime": "2026-04-09T16:59:43.866Z",
@@ -5321,7 +5326,7 @@
         "pms_location_mapping": {
           "tableId": "pms_location_mapping",
           "type": "TABLE",
-          "description": null,
+          "description": "Location dimension enriched from the PMS side: location_id,\nlocation_name, regional grouping, deal name, full name, PMS name,\nupdated_by. Used to label PMS rows with the standard IDSO\nlocation hierarchy.\n",
           "numRows": 49,
           "numBytes": 5081,
           "lastModifiedTime": "2026-04-09T08:19:08.634Z",
@@ -5404,7 +5409,7 @@
         "pms_provider_mapping": {
           "tableId": "pms_provider_mapping",
           "type": "TABLE",
-          "description": null,
+          "description": "Provider (doctor / hygienist) dimension from the PMS side:\nlocation_id, location_name, provider_name, position, updated_by,\nadditional_data. Use for provider-level reporting such as\n\"production by doctor.\"\n",
           "numRows": 8011,
           "numBytes": 1630584,
           "lastModifiedTime": "2026-04-22T09:45:03.736Z",

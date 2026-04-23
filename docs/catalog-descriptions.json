@@ -1,0 +1,269 @@
+{
+  "datasets": {
+    "ADP_system": {
+      "description": "ADP payroll and HR data. Ingested from ADP Workforce Now exports. Covers\npayroll line items (every pay stub row), employee dimension (roster with\ndepartment / job title / cost center), and timecards. Use this for any\nquestion about compensation, headcount, hours worked, or allocations of\npayroll to departments / cost centers / GL accounts.\n",
+      "tables": {
+        "adp_payroll_output": {
+          "description": "Payroll fact table: one row per employee per pay-period per pay\ncategory (earnings, deductions, taxes). Includes pay period start/end,\npayment date, employee name, department, business unit, job title,\nlocation, and GL account code. This is the primary source for\n\"what did we pay whom, when, and for what GL line.\"\n"
+        },
+        "employees_dim": {
+          "description": "Active employee dimension: one row per employee with current\nidentifying and HR attributes (name, email, hire/termination date,\nemployment status, job title, department, cost center, GL account).\nJoin on employee_id from adp_payroll_output or timecards_dim.\n"
+        },
+        "employees_dim_staging": {
+          "description": "Staging copy of employees_dim used during the ADP sync pipeline. Do\nnot query directly for reporting; use employees_dim instead.\n"
+        },
+        "payroll_sync_state": {
+          "description": "Operational bookkeeping for the ADP payroll sync pipeline (last\nprocessed item, batch cursors). Not useful for business reporting.\n"
+        },
+        "sync_metadata": {
+          "description": "Operational bookkeeping for the ADP sync pipeline (run-level status,\nbatch counts, timestamps). Not useful for business reporting.\n"
+        },
+        "timecards_dim": {
+          "description": "Timecard facts: one row per employee per pay period with total hours\nworked. Join to employees_dim on employee_id for name / department\ncontext. Empty or near-empty for salaried employees.\n"
+        }
+      }
+    },
+    "Dentira_system": {
+      "description": "Dentira dental-supplies e-procurement data. Ingested from the Dentira\nplatform that IDSO practices use to order dental supplies, equipment,\nand services from vendors. Covers invoices, orders, line items, the\npractice catalog, and the supplier / vendor catalog. Use this for\nsupply-chain spend, vendor performance, supplier consolidation, and\npractice-level ordering analysis.\n",
+      "tables": {
+        "dentira_invoices": {
+          "description": "Supplier invoice headers: one row per invoice received through\nDentira. Includes invoice number, date, status, supplier, vendor,\nclinic/practice, and vendor/supplier cross-references.\n"
+        },
+        "dentira_invoice_items": {
+          "description": "Supplier invoice line items: one row per line on each invoice with\nSKU, item name, unit price, quantity, total, and GL account code.\nJoin to dentira_invoices on invoice_number.\n"
+        },
+        "dentira_orders": {
+          "description": "Supplier order headers (purchase orders placed through Dentira). One\nrow per order with practice, supplier, vendor, order date, received\ndate, status, approver, and catalog flags.\n"
+        },
+        "dentira_orders_items": {
+          "description": "Order line items: one row per line on each purchase order with\nproduct, item name, UOM, category, manufacturer, unit price,\nordered quantity, received quantity, and total.\n"
+        },
+        "dentira_practices": {
+          "description": "Practice (clinic) dimension for Dentira: location_id, clinic name,\nemail. Small lookup table used to join orders / invoices to a\npractice.\n"
+        },
+        "dentira_suppliers": {
+          "description": "Supplier / vendor dimension: supplier_id, supplier name, vendor_id,\nvendor_name, vendor_alias. Lookup for Dentira orders and invoices.\n"
+        },
+        "dentira_load_audit": {
+          "description": "Operational bookkeeping for the Dentira ingestion pipeline (load\ntimestamps, row counts, error messages, load status). Not useful\nfor business reporting.\n"
+        }
+      }
+    },
+    "PMS_system": {
+      "description": "Practice-Management-System payment transactions AND the reconciliation\nengine that matches them to the bank side. PMSTxn holds dental\ninsurance carrier payments, patient payments, and other receipts that\nwere recorded in the practice-management system. The rest of the\ndataset (ReconBatches, BatchRankings, Criteria*_Candidates, FuzzyMap,\nLLM_BatchPayload, LLM_RankResults, Match_Config, Reconciliations,\nStrictMatch) is the IDSO-built ML/LLM pipeline that matches each PMS\npayment to the corresponding bank deposit in Sage Intacct. Use PMSTxn\nfor PMS-side revenue questions; use Reconciliations or Reconciliation_view\nfor \"what got matched vs. what is still open.\"\n",
+      "tables": {
+        "PMSTxn": {
+          "description": "Raw payment transactions from practice-management systems. One row\nper payment: carrier_name, claim_id, amount, practice_id,\npayment_type, status, bank_vendor, PMS_Date. This is the PMS side\nof reconciliation (vs. SageIntacct_BankTransactions on the bank\nside).\n"
+        },
+        "SageIntacct_BankTransactions": {
+          "description": "Bank-side view of transactions exported from Sage Intacct, filtered\nand enriched for the matching engine. One row per bank line with\naccount, posting date, amount, payer, description, and transaction\ntype. Pair with PMSTxn for reconciliation queries.\n"
+        },
+        "Reconciliations": {
+          "description": "Authoritative match results: one row per reconciled pair\n(PMS payment x Bank transaction) with amount applied, created/updated\ntimestamps, status, modification history, and rejection reason.\nStart here for \"what is matched, what is still open\" questions.\n"
+        },
+        "Reconciliation_view2": {
+          "description": "Convenience view that joins Reconciliations back to the underlying\nPMS and bank rows (with location, practice, amount, carrier). Use\nfor reporting when you need the matched pair plus context in one\nrow.\n"
+        },
+        "ReconBatches": {
+          "description": "Batches of reconciliation candidates produced by the matching engine.\nOne row per batch run; join to ReconBatchItems for the items\ninside each batch.\n"
+        },
+        "ReconBatches_UI": {
+          "description": "UI-facing view of ReconBatches, same shape with formatting /\nlabels tuned for the internal reconciliation dashboard app.\n"
+        },
+        "ReconBatchItems": {
+          "description": "Items (candidate PMS x Bank pairs) inside each reconciliation batch\nwith status, AI flag, flag reason, and computed flag fields. Join\nto ReconBatches on BatchID.\n"
+        },
+        "ReconBatchItems_UI": {
+          "description": "UI-facing view of ReconBatchItems for the reconciliation dashboard.\n"
+        },
+        "ReconciliationApprovals": {
+          "description": "Approval audit trail for reconciliations: who approved which\nbatch/txn, when, and any attached notes.\n"
+        },
+        "ReconCheckpoint": {
+          "description": "Checkpoint markers for long-running reconciliation jobs (last\nprocessed bank txn id). Operational only.\n"
+        },
+        "BatchDecisions": {
+          "description": "Per-batch decision outcomes: DecisionID, Decision, DecisionBy,\nDecisionAt, Reason. Links the human/LLM approval to a batch.\n"
+        },
+        "BatchRankings": {
+          "description": "Per-batch candidate rankings produced by the matching engine, with\nrank, confidence, and LLM rationale. Drives which candidates get\nsurfaced first in the review UI.\n"
+        },
+        "Criteria1_Candidates": {
+          "description": "Candidate PMS-Bank pairs generated by matching rule set 1 (typically\nexact amount + date proximity). Consumed by the downstream ranking /\nbatching logic.\n"
+        },
+        "Criteria2_Candidates": {
+          "description": "Candidate PMS-Bank pairs generated by matching rule set 2 (looser\ndate window, partial description match).\n"
+        },
+        "Criteria3_Candidates": {
+          "description": "Candidate PMS-Bank pairs generated by matching rule set 3 (fuzzy /\nmulti-field).\n"
+        },
+        "PMS_Criteria2": {
+          "description": "PMS-side intermediate used by the Criteria 2 matcher. Aggregates\nPMS transactions by practice / vendor / payment type before\ncandidate generation.\n"
+        },
+        "Bank_Transaction_Timing_BQ": {
+          "description": "Profiling / timing metadata for SageIntacct_BankTransactions loads.\nOperational only.\n"
+        },
+        "DailyReconciliationSummary": {
+          "description": "Daily rollup of reconciliation status: per-day counts of matched /\nunmatched / reviewed pairs. Drives the ops dashboard KPIs.\n"
+        },
+        "FuzzyMap": {
+          "description": "Fuzzy-match lookup table between PMS and bank payer strings (carrier\nname variants, payer aliases). Used to bridge spelling / formatting\ndifferences before candidate ranking.\n"
+        },
+        "LLM_BatchPayload": {
+          "description": "Raw input payload sent to the LLM for each reconciliation batch\n(candidates + context). Useful for replaying or debugging AI\ndecisions.\n"
+        },
+        "LLM_RankResults": {
+          "description": "Raw LLM ranking output per batch: ranked candidates with confidence\nand rationale. Joined into BatchRankings for downstream use.\n"
+        },
+        "Match_Config": {
+          "description": "Configuration for the matching engine: per-channel tolerance cents,\nbusiness-day windows, criteria toggles. Edit here to tune the\nmatcher without code changes.\n"
+        },
+        "StrictMatch": {
+          "description": "Strict exact-match candidates (amount + date + identifier equality).\nHighest-confidence subset, usually auto-approved.\n"
+        },
+        "location_id_mapping": {
+          "description": "Mapping from raw PMS location identifiers to IDSO location_id. Used\nto normalise practice-level keys across PMS vendors.\n"
+        },
+        "location_xwalk": {
+          "description": "Cross-walk between bank-account-level location identifiers and PMS\nlocation_id. Joins bank rows (where only an account is present) to\na practice.\n"
+        },
+        "mapping_norm": {
+          "description": "Normalised payer-name -> canonical-vendor mapping used by the\nfuzzy matcher. Regenerated from dim_mappings.bank_description_*.\n"
+        },
+        "sage_bank_account_mapping": {
+          "description": "Bank account id (Sage) -> practice / entity mapping. Same idea as\nlocation_xwalk but at the bank-account grain.\n"
+        },
+        "transaction_types_custom_categories_raw": {
+          "description": "User-defined overrides for transaction type / category classification\nused in reconciliation. Tweak here to reclassify payment types.\n"
+        },
+        "update_mapped": {
+          "description": "Audit log of mapping-table updates (when a cross-walk row was added\nor edited, by whom).\n"
+        },
+        "clean_txn": {
+          "description": "Cleaned / normalised copy of PMSTxn and bank rows used as the input\nto the matching pipeline. Do not query for reporting; use PMSTxn\nor SageIntacct_BankTransactions.\n"
+        },
+        "final_cleaned_result": {
+          "description": "Final cleaned output of the reconciliation pipeline for a run.\nTypically consumed by downstream dashboards.\n"
+        },
+        "AcceptedMatches": {
+          "description": "Historical record of matches that were accepted (by human or auto-rule) in the reconciliation workflow. Join to PMSTxn and BankTxn on MatchID to get the matched pair. Status / UndoneBy / UndoReason let you see matches that were later reversed."
+        },
+        "AuditLogs": {
+          "description": "Append-only audit trail of user actions in the reconciliation dashboard: who did what (Action, EntityType, EntityID), when, from which IP, with changes and notes. Use for compliance, forensics, and \"who changed X\" questions."
+        },
+        "BankList_FuzzyNorm": {
+          "description": "Fuzzy-normalised bank payer list with PMS mapping candidates and soundex/phonetic keys (n2, n3). Input to the fuzzy matcher."
+        },
+        "BankTxn": {
+          "description": "Raw bank transactions as ingested (before normalisation). One row per bank line with Bank_Transaction_ID, Date, Transaction_Type, Payment_Description, Amount, Status, Bank_Acct_No, location_id, payer_name, pms_mapping. This is the PMS_system view of the bank side; see Sage_system_v2.sage_bank_transactions_v2 for the canonical Sage export."
+        },
+        "BankTxn_CSV_files_Upload_Log": {
+          "description": "Per-file upload audit for bank CSVs: filename, Bank_Acct_No, inserted_rows, skipped_loan_sweep_rows, processed_at, LogID. Operational only."
+        },
+        "BankTxn_CleanTemp": {
+          "description": "Temporary table used by the bank-txn cleaning step. Not authoritative."
+        },
+        "BankTxn_Excluded_Archive": {
+          "description": "Bank transactions explicitly excluded from reconciliation (loans, sweeps, transfers). Kept for audit so exclusions are reversible."
+        },
+        "BankTxn_FuzzyNorm": {
+          "description": "Fuzzy-normalised BankTxn with phonetic / soundex keys (n1, s1) for the fuzzy matcher. Intermediate; do not query for reporting."
+        },
+        "BankTxn_MapFuzzy": {
+          "description": "Per-row mapping result from the fuzzy matcher (ID -> PMS_Mapping). Intermediate."
+        },
+        "BankTxn_MapStrict": {
+          "description": "Per-row mapping result from the strict matcher (ID -> PMS_Mapping). Intermediate."
+        },
+        "BankTxn_MapTemp": {
+          "description": "Temporary mapping table during BankTxn processing. Intermediate."
+        },
+        "BankTxn_RematchTemp": {
+          "description": "Temporary working table used when re-running the matcher against a bounded subset of bank txns. Intermediate."
+        },
+        "BankTxn_Staging": {
+          "description": "Staging copy of BankTxn before it is promoted to BankTxn / BankTxn_Normalised. Includes __insertIdContentHash for dedupe. Operational only."
+        },
+        "Bank_Payer_List": {
+          "description": "Raw observed-bank-payer list (Payer_Name_Description + PMS_Mapping) before normalisation. Superseded by BankPayersList_Normalised."
+        },
+        "Bank_Transaction_Timing": {
+          "description": "Mapping rules that classify bank txns by PMS_Mapping + priority date windows (+ exclude dates, possible merchant fee). Used by the matcher to enforce business-day windows."
+        },
+        "BankPayerList_Normalised": {
+          "description": "Canonical bank payer list after normalisation: one row per bank payer with normalised name / soundex / PMS mapping list. Dimension-style lookup."
+        },
+        "BankTxn_Normalised": {
+          "description": "BankTxn after full normalisation: payment_description, normalised_desc, soundex_desc. The canonical cleaned bank-txn view used by the matcher."
+        }
+      }
+    },
+    "Sage_system_v2": {
+      "description": "Sage Intacct general ledger and bank data. This is the authoritative\naccounting source: every GL journal entry line and every bank-side\ntransaction as booked in Sage. Join gl_journal_entry_lines to the\ndim_* columns to slice by department, location, vendor, customer,\nproject, employee, item, or class. Use for any finance, close,\ncash-flow, or revenue-by-dimension question.\n",
+      "tables": {
+        "gl_journal_entry_lines": {
+          "description": "The GL fact: one row per journal-entry line with GL account, debit/\ncredit amount, dimension keys (department, location, vendor,\ncustomer, project, employee, item, class), currency, and\nreconciliation status. The primary source for financial reporting.\n"
+        },
+        "sage_bank_transactions_v2": {
+          "description": "Bank-side transactions as exported from Sage Intacct bank feeds.\nOne row per bank line with account, posting date, amount, payer,\ndescription. Pairs with PMS_system.PMSTxn in the reconciliation\npipeline.\n"
+        },
+        "bank_transaction_summaries": {
+          "description": "Rolled-up bank transaction summaries (by bank, day, and posting\nstatus). Faster for dashboards than scanning the raw txn table.\n"
+        },
+        "bank_id_practice_mapping": {
+          "description": "Bank account -> practice crosswalk at the Sage level. Join\nsage_bank_transactions_v2.bank_account_id to get a practice_id.\n"
+        },
+        "entry_tracking": {
+          "description": "Tracking table: which GL journal entries have been picked up by\ndownstream pipelines (reconciliation, reporting). Operational only.\n"
+        },
+        "sync_metadata": {
+          "description": "Operational bookkeeping for the Sage sync pipeline. Not for\nreporting.\n"
+        },
+        "sync_state": {
+          "description": "Operational sync cursor for bank-side rows. Not for reporting.\n"
+        },
+        "sync_state_gl": {
+          "description": "Operational sync cursor for GL rows. Not for reporting.\n"
+        },
+        "temp_gl_lines_1773341871": {
+          "description": "Temporary scratch table from a specific GL backfill run (suffix is\nthe run id). Not authoritative; do not query for reporting.\n"
+        }
+      }
+    },
+    "dim_mappings": {
+      "description": "Shared dimension / lookup tables used across the other datasets\n(especially PMS_system's reconciliation engine). Bank-description\nparsing rules, payment-category mappings, bank-vendor rules, and\nPMS provider / location mappings. Treat as slowly-changing reference\ndata. Backup tables (\"..._backup_YYYYMMDD\") are point-in-time\nsnapshots retained for audit; use the non-backup version for current\nlookups.\n",
+      "tables": {
+        "bank_account_mapping": {
+          "description": "Canonical map from bank_account_id -> practice_name / location_id /\nupdated_by / updated_at. Used to put a practice label on any bank\nrow.\n"
+        },
+        "bank_description_mapping": {
+          "description": "Rules that parse a raw bank transaction description into vendor /\ncategory / is_carrier flag / approval status. Used by PMS_system\nfuzzy matching.\n"
+        },
+        "bank_description_mapping_backup_20260409": {
+          "description": "Point-in-time snapshot of bank_description_mapping taken 2026-04-09.\nAudit only.\n"
+        },
+        "bank_description_mapping_backup_20260410": {
+          "description": "Point-in-time snapshot of bank_description_mapping taken 2026-04-10.\nAudit only.\n"
+        },
+        "bank_description_staging": {
+          "description": "Staging area for proposed bank_description_mapping changes before\nthey get promoted to the live table. Includes confidence,\nfirst_seen_at, processed_at.\n"
+        },
+        "bank_vendor_rules": {
+          "description": "Prefix / vendor rules table: maps raw description prefixes to\ncanonical vendors. Paired with bank_description_mapping for\nbank-side normalisation.\n"
+        },
+        "payment_category_mapping": {
+          "description": "Maps normalised payment types to a GL category / ledger category,\nscoped by location and vendor. Drives auto-categorisation of\nincoming bank rows.\n"
+        },
+        "payment_category_mapping_backup_20260409": {
+          "description": "Point-in-time snapshot of payment_category_mapping taken\n2026-04-09. Audit only.\n"
+        },
+        "pms_location_mapping": {
+          "description": "Location dimension enriched from the PMS side: location_id,\nlocation_name, regional grouping, deal name, full name, PMS name,\nupdated_by. Used to label PMS rows with the standard IDSO\nlocation hierarchy.\n"
+        },
+        "pms_provider_mapping": {
+          "description": "Provider (doctor / hygienist) dimension from the PMS side:\nlocation_id, location_name, provider_name, position, updated_by,\nadditional_data. Use for provider-level reporting such as\n\"production by doctor.\"\n"
+        }
+      }
+    }
+  }
+}

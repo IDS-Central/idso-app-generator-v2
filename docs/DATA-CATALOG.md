@@ -1,11 +1,11 @@
 # IDSO Data Catalog
 
-Machine-generated inventory of all BigQuery datasets and tables in the `reconciliation-dashboard` project. The IDSO app generator reads this catalog at plan time so it can ground generated apps in real tables and columns instead of hallucinating them.
+Machine-generated inventory of all BigQuery datasets and tables in the `reconciliation-dashboard` project, merged with human-curated descriptions from `docs/catalog-descriptions.yaml`. The IDSO app generator reads this catalog at plan time so it can ground generated apps in real tables and columns.
 
-**DO NOT EDIT MANUALLY.** Regenerate with `scripts/refresh-catalog.sh`.
+**DO NOT EDIT MANUALLY.** Regenerate with `scripts/refresh-catalog.sh` (pulls fresh schemas) or `node scripts/build-catalog.js` (rebuild from existing schemas + descriptions).
 
 - Project: `reconciliation-dashboard`
-- Generated: 2026-04-23T01:56:34.072Z
+- Generated: 2026-04-23T02:38:52.454Z
 - Datasets: 5
 - Tables: 80
 - Columns (flattened): 764
@@ -14,9 +14,20 @@ Machine-generated inventory of all BigQuery datasets and tables in the `reconcil
 
 ### `ADP_system` (6 tables)
 
+ADP payroll and HR data. Ingested from ADP Workforce Now exports. Covers
+payroll line items (every pay stub row), employee dimension (roster with
+department / job title / cost center), and timecards. Use this for any
+question about compensation, headcount, hours worked, or allocations of
+payroll to departments / cost centers / GL accounts.
+
 #### `ADP_system.adp_payroll_output`
 
-> ADP payroll output - one row per employee × payment × department allocation
+Payroll fact table: one row per employee per pay-period per pay
+category (earnings, deductions, taxes). Includes pay period start/end,
+payment date, employee name, department, business unit, job title,
+location, and GL account code. This is the primary source for
+"what did we pay whom, when, and for what GL line."
+
 _102,447 rows, 32 columns_
 
 | Column | Type | Mode | Description |
@@ -56,6 +67,11 @@ _102,447 rows, 32 columns_
 
 #### `ADP_system.employees_dim`
 
+Active employee dimension: one row per employee with current
+identifying and HR attributes (name, email, hire/termination date,
+employment status, job title, department, cost center, GL account).
+Join on employee_id from adp_payroll_output or timecards_dim.
+
 _4,577 rows, 14 columns_
 
 | Column | Type | Mode | Description |
@@ -76,6 +92,9 @@ _4,577 rows, 14 columns_
 | `_load_timestamp` | TIMESTAMP | NULLABLE |  |
 
 #### `ADP_system.employees_dim_staging`
+
+Staging copy of employees_dim used during the ADP sync pipeline. Do
+not query directly for reporting; use employees_dim instead.
 
 _4,577 rows, 14 columns_
 
@@ -98,6 +117,9 @@ _4,577 rows, 14 columns_
 
 #### `ADP_system.payroll_sync_state`
 
+Operational bookkeeping for the ADP payroll sync pipeline (last
+processed item, batch cursors). Not useful for business reporting.
+
 _1 rows, 5 columns_
 
 | Column | Type | Mode | Description |
@@ -109,6 +131,9 @@ _1 rows, 5 columns_
 | `updated_timestamp` | TIMESTAMP | NULLABLE |  |
 
 #### `ADP_system.sync_metadata`
+
+Operational bookkeeping for the ADP sync pipeline (run-level status,
+batch counts, timestamps). Not useful for business reporting.
 
 _2 rows, 6 columns_
 
@@ -122,6 +147,10 @@ _2 rows, 6 columns_
 | `updated_timestamp` | TIMESTAMP | NULLABLE |  |
 
 #### `ADP_system.timecards_dim`
+
+Timecard facts: one row per employee per pay period with total hours
+worked. Join to employees_dim on employee_id for name / department
+context. Empty or near-empty for salaried employees.
 
 _0 rows, 8 columns_
 
@@ -138,7 +167,18 @@ _0 rows, 8 columns_
 
 ### `Dentira_system` (7 tables)
 
+Dentira dental-supplies e-procurement data. Ingested from the Dentira
+platform that IDSO practices use to order dental supplies, equipment,
+and services from vendors. Covers invoices, orders, line items, the
+practice catalog, and the supplier / vendor catalog. Use this for
+supply-chain spend, vendor performance, supplier consolidation, and
+practice-level ordering analysis.
+
 #### `Dentira_system.dentira_invoice_items`
+
+Supplier invoice line items: one row per line on each invoice with
+SKU, item name, unit price, quantity, total, and GL account code.
+Join to dentira_invoices on invoice_number.
 
 _31,085 rows, 25 columns_
 
@@ -172,6 +212,10 @@ _31,085 rows, 25 columns_
 
 #### `Dentira_system.dentira_invoices`
 
+Supplier invoice headers: one row per invoice received through
+Dentira. Includes invoice number, date, status, supplier, vendor,
+clinic/practice, and vendor/supplier cross-references.
+
 _3,558 rows, 14 columns_
 
 | Column | Type | Mode | Description |
@@ -193,6 +237,10 @@ _3,558 rows, 14 columns_
 
 #### `Dentira_system.dentira_load_audit`
 
+Operational bookkeeping for the Dentira ingestion pipeline (load
+timestamps, row counts, error messages, load status). Not useful
+for business reporting.
+
 _12 rows, 11 columns_
 
 | Column | Type | Mode | Description |
@@ -210,6 +258,10 @@ _12 rows, 11 columns_
 | `processing_duration_seconds` | FLOAT | NULLABLE |  |
 
 #### `Dentira_system.dentira_orders`
+
+Supplier order headers (purchase orders placed through Dentira). One
+row per order with practice, supplier, vendor, order date, received
+date, status, approver, and catalog flags.
 
 _2,658 rows, 20 columns_
 
@@ -237,6 +289,10 @@ _2,658 rows, 20 columns_
 | `load_timestamp` | TIMESTAMP | NULLABLE |  |
 
 #### `Dentira_system.dentira_orders_items`
+
+Order line items: one row per line on each purchase order with
+product, item name, UOM, category, manufacturer, unit price,
+ordered quantity, received quantity, and total.
 
 _19,355 rows, 26 columns_
 
@@ -271,6 +327,10 @@ _19,355 rows, 26 columns_
 
 #### `Dentira_system.dentira_practices`
 
+Practice (clinic) dimension for Dentira: location_id, clinic name,
+email. Small lookup table used to join orders / invoices to a
+practice.
+
 _86 rows, 3 columns_
 
 | Column | Type | Mode | Description |
@@ -280,6 +340,9 @@ _86 rows, 3 columns_
 | `email` | STRING | NULLABLE |  |
 
 #### `Dentira_system.dentira_suppliers`
+
+Supplier / vendor dimension: supplier_id, supplier name, vendor_id,
+vendor_name, vendor_alias. Lookup for Dentira orders and invoices.
 
 _79 rows, 4 columns_
 
@@ -292,7 +355,20 @@ _79 rows, 4 columns_
 
 ### `PMS_system` (48 tables)
 
+Practice-Management-System payment transactions AND the reconciliation
+engine that matches them to the bank side. PMSTxn holds dental
+insurance carrier payments, patient payments, and other receipts that
+were recorded in the practice-management system. The rest of the
+dataset (ReconBatches, BatchRankings, Criteria*_Candidates, FuzzyMap,
+LLM_BatchPayload, LLM_RankResults, Match_Config, Reconciliations,
+StrictMatch) is the IDSO-built ML/LLM pipeline that matches each PMS
+payment to the corresponding bank deposit in Sage Intacct. Use PMSTxn
+for PMS-side revenue questions; use Reconciliations or Reconciliation_view
+for "what got matched vs. what is still open."
+
 #### `PMS_system.AcceptedMatches`
+
+Historical record of matches that were accepted (by human or auto-rule) in the reconciliation workflow. Join to PMSTxn and BankTxn on MatchID to get the matched pair. Status / UndoneBy / UndoReason let you see matches that were later reversed.
 
 _67 rows, 10 columns_
 
@@ -311,6 +387,8 @@ _67 rows, 10 columns_
 
 #### `PMS_system.AuditLogs`
 
+Append-only audit trail of user actions in the reconciliation dashboard: who did what (Action, EntityType, EntityID), when, from which IP, with changes and notes. Use for compliance, forensics, and "who changed X" questions.
+
 _82 rows, 9 columns_
 
 | Column | Type | Mode | Description |
@@ -326,6 +404,8 @@ _82 rows, 9 columns_
 | `IPAddress` | STRING | NULLABLE |  |
 
 #### `PMS_system.BankList_FuzzyNorm`
+
+Fuzzy-normalised bank payer list with PMS mapping candidates and soundex/phonetic keys (n2, n3). Input to the fuzzy matcher.
 
 _841 rows, 4 columns_
 
@@ -349,6 +429,8 @@ _842 rows, 4 columns_
 
 #### `PMS_system.BankTxn`
 
+Raw bank transactions as ingested (before normalisation). One row per bank line with Bank_Transaction_ID, Date, Transaction_Type, Payment_Description, Amount, Status, Bank_Acct_No, location_id, payer_name, pms_mapping. This is the PMS_system view of the bank side; see Sage_system_v2.sage_bank_transactions_v2 for the canonical Sage export.
+
 _48,865 rows, 14 columns_
 
 | Column | Type | Mode | Description |
@@ -370,6 +452,8 @@ _48,865 rows, 14 columns_
 
 #### `PMS_system.BankTxn_CSV_files_Upload_Log`
 
+Per-file upload audit for bank CSVs: filename, Bank_Acct_No, inserted_rows, skipped_loan_sweep_rows, processed_at, LogID. Operational only.
+
 _3,759 rows, 7 columns_
 
 | Column | Type | Mode | Description |
@@ -384,6 +468,8 @@ _3,759 rows, 7 columns_
 
 #### `PMS_system.BankTxn_CleanTemp`
 
+Temporary table used by the bank-txn cleaning step. Not authoritative.
+
 _48,865 rows, 2 columns_
 
 | Column | Type | Mode | Description |
@@ -392,6 +478,8 @@ _48,865 rows, 2 columns_
 | `payer_clean` | STRING | NULLABLE |  |
 
 #### `PMS_system.BankTxn_Excluded_Archive`
+
+Bank transactions explicitly excluded from reconciliation (loans, sweeps, transfers). Kept for audit so exclusions are reversible.
 
 _19,446 rows, 12 columns_
 
@@ -412,6 +500,8 @@ _19,446 rows, 12 columns_
 
 #### `PMS_system.BankTxn_FuzzyNorm`
 
+Fuzzy-normalised BankTxn with phonetic / soundex keys (n1, s1) for the fuzzy matcher. Intermediate; do not query for reporting.
+
 _1,052 rows, 4 columns_
 
 | Column | Type | Mode | Description |
@@ -423,6 +513,8 @@ _1,052 rows, 4 columns_
 
 #### `PMS_system.BankTxn_MapFuzzy`
 
+Per-row mapping result from the fuzzy matcher (ID -> PMS_Mapping). Intermediate.
+
 _0 rows, 2 columns_
 
 | Column | Type | Mode | Description |
@@ -432,6 +524,8 @@ _0 rows, 2 columns_
 
 #### `PMS_system.BankTxn_MapStrict`
 
+Per-row mapping result from the strict matcher (ID -> PMS_Mapping). Intermediate.
+
 _0 rows, 2 columns_
 
 | Column | Type | Mode | Description |
@@ -440,6 +534,8 @@ _0 rows, 2 columns_
 | `PMS_Mapping` | STRING | NULLABLE |  |
 
 #### `PMS_system.BankTxn_MapTemp`
+
+Temporary mapping table during BankTxn processing. Intermediate.
 
 _63 rows, 2 columns_
 
@@ -461,6 +557,8 @@ _63 rows, 4 columns_
 
 #### `PMS_system.BankTxn_RematchTemp`
 
+Temporary working table used when re-running the matcher against a bounded subset of bank txns. Intermediate.
+
 _1 rows, 2 columns_
 
 | Column | Type | Mode | Description |
@@ -469,6 +567,8 @@ _1 rows, 2 columns_
 | `PMS_Mapping` | STRING | NULLABLE |  |
 
 #### `PMS_system.BankTxn_Staging`
+
+Staging copy of BankTxn before it is promoted to BankTxn / BankTxn_Normalised. Includes __insertIdContentHash for dedupe. Operational only.
 
 _0 rows, 9 columns_
 
@@ -486,6 +586,8 @@ _0 rows, 9 columns_
 
 #### `PMS_system.Bank_Payer_List` _(EXTERNAL)_
 
+Raw observed-bank-payer list (Payer_Name_Description + PMS_Mapping) before normalisation. Superseded by BankPayersList_Normalised.
+
 _0 rows, 2 columns_
 
 | Column | Type | Mode | Description |
@@ -494,6 +596,8 @@ _0 rows, 2 columns_
 | `PMS_Mapping` | STRING | NULLABLE |  |
 
 #### `PMS_system.Bank_Transaction_Timing` _(EXTERNAL)_
+
+Mapping rules that classify bank txns by PMS_Mapping + priority date windows (+ exclude dates, possible merchant fee). Used by the matcher to enforce business-day windows.
 
 _0 rows, 4 columns_
 
@@ -506,6 +610,9 @@ _0 rows, 4 columns_
 
 #### `PMS_system.Bank_Transaction_Timing_BQ`
 
+Profiling / timing metadata for SageIntacct_BankTransactions loads.
+Operational only.
+
 _56 rows, 4 columns_
 
 | Column | Type | Mode | Description |
@@ -516,6 +623,9 @@ _56 rows, 4 columns_
 | `Possible_Merchant_Fee` | FLOAT | NULLABLE |  |
 
 #### `PMS_system.BatchDecisions`
+
+Per-batch decision outcomes: DecisionID, Decision, DecisionBy,
+DecisionAt, Reason. Links the human/LLM approval to a batch.
 
 _0 rows, 7 columns_
 
@@ -530,6 +640,10 @@ _0 rows, 7 columns_
 | `Reason` | STRING | NULLABLE |  |
 
 #### `PMS_system.BatchRankings`
+
+Per-batch candidate rankings produced by the matching engine, with
+rank, confidence, and LLM rationale. Drives which candidates get
+surfaced first in the review UI.
 
 _0 rows, 9 columns_
 
@@ -547,6 +661,10 @@ _0 rows, 9 columns_
 
 #### `PMS_system.Criteria1_Candidates`
 
+Candidate PMS-Bank pairs generated by matching rule set 1 (typically
+exact amount + date proximity). Consumed by the downstream ranking /
+batching logic.
+
 _0 rows, 9 columns_
 
 | Column | Type | Mode | Description |
@@ -562,6 +680,9 @@ _0 rows, 9 columns_
 | `business_day_diff` | INTEGER | NULLABLE |  |
 
 #### `PMS_system.Criteria2_Candidates`
+
+Candidate PMS-Bank pairs generated by matching rule set 2 (looser
+date window, partial description match).
 
 _0 rows, 21 columns_
 
@@ -591,6 +712,9 @@ _0 rows, 21 columns_
 
 #### `PMS_system.Criteria3_Candidates`
 
+Candidate PMS-Bank pairs generated by matching rule set 3 (fuzzy /
+multi-field).
+
 _0 rows, 21 columns_
 
 | Column | Type | Mode | Description |
@@ -619,6 +743,9 @@ _0 rows, 21 columns_
 
 #### `PMS_system.DailyReconciliationSummary`
 
+Daily rollup of reconciliation status: per-day counts of matched /
+unmatched / reviewed pairs. Drives the ops dashboard KPIs.
+
 _1 rows, 5 columns_
 
 | Column | Type | Mode | Description |
@@ -631,6 +758,10 @@ _1 rows, 5 columns_
 
 #### `PMS_system.FuzzyMap`
 
+Fuzzy-match lookup table between PMS and bank payer strings (carrier
+name variants, payer aliases). Used to bridge spelling / formatting
+differences before candidate ranking.
+
 _1,052 rows, 2 columns_
 
 | Column | Type | Mode | Description |
@@ -639,6 +770,10 @@ _1,052 rows, 2 columns_
 | `PMS_Mapping` | STRING | NULLABLE |  |
 
 #### `PMS_system.LLM_BatchPayload`
+
+Raw input payload sent to the LLM for each reconciliation batch
+(candidates + context). Useful for replaying or debugging AI
+decisions.
 
 _0 rows, 6 columns_
 
@@ -652,6 +787,9 @@ _0 rows, 6 columns_
 | `PayloadJSON` | STRING | NULLABLE |  |
 
 #### `PMS_system.LLM_RankResults`
+
+Raw LLM ranking output per batch: ranked candidates with confidence
+and rationale. Joined into BatchRankings for downstream use.
 
 _5 rows, 15 columns_
 
@@ -675,6 +813,10 @@ _5 rows, 15 columns_
 
 #### `PMS_system.Match_Config`
 
+Configuration for the matching engine: per-channel tolerance cents,
+business-day windows, criteria toggles. Edit here to tune the
+matcher without code changes.
+
 _194 rows, 3 columns_
 
 | Column | Type | Mode | Description |
@@ -684,6 +826,12 @@ _194 rows, 3 columns_
 | `BusinessDayWindow` | INTEGER | NULLABLE |  |
 
 #### `PMS_system.PMSTxn`
+
+Raw payment transactions from practice-management systems. One row
+per payment: carrier_name, claim_id, amount, practice_id,
+payment_type, status, bank_vendor, PMS_Date. This is the PMS side
+of reconciliation (vs. SageIntacct_BankTransactions on the bank
+side).
 
 _1,477,731 rows, 13 columns_
 
@@ -705,6 +853,10 @@ _1,477,731 rows, 13 columns_
 
 #### `PMS_system.PMS_Criteria2`
 
+PMS-side intermediate used by the Criteria 2 matcher. Aggregates
+PMS transactions by practice / vendor / payment type before
+candidate generation.
+
 _0 rows, 7 columns_
 
 | Column | Type | Mode | Description |
@@ -718,6 +870,10 @@ _0 rows, 7 columns_
 | `PMS_Transactions_List` | STRING | REPEATED |  |
 
 #### `PMS_system.ReconBatchItems`
+
+Items (candidate PMS x Bank pairs) inside each reconciliation batch
+with status, AI flag, flag reason, and computed flag fields. Join
+to ReconBatches on BatchID.
 
 _18,320 rows, 10 columns_
 
@@ -735,6 +891,8 @@ _18,320 rows, 10 columns_
 | `CreatedAt` | TIMESTAMP | NULLABLE |  |
 
 #### `PMS_system.ReconBatchItems_UI`
+
+UI-facing view of ReconBatchItems for the reconciliation dashboard.
 
 _0 rows, 12 columns_
 
@@ -754,6 +912,10 @@ _0 rows, 12 columns_
 | `ComputedFlagReason` | STRING | NULLABLE |  |
 
 #### `PMS_system.ReconBatches`
+
+Batches of reconciliation candidates produced by the matching engine.
+One row per batch run; join to ReconBatchItems for the items
+inside each batch.
 
 _3,946 rows, 15 columns_
 
@@ -777,6 +939,9 @@ _3,946 rows, 15 columns_
 
 #### `PMS_system.ReconBatches_UI`
 
+UI-facing view of ReconBatches, same shape with formatting /
+labels tuned for the internal reconciliation dashboard app.
+
 _0 rows, 14 columns_
 
 | Column | Type | Mode | Description |
@@ -798,6 +963,9 @@ _0 rows, 14 columns_
 
 #### `PMS_system.ReconCheckpoint`
 
+Checkpoint markers for long-running reconciliation jobs (last
+processed bank txn id). Operational only.
+
 _1 rows, 3 columns_
 
 | Column | Type | Mode | Description |
@@ -807,6 +975,9 @@ _1 rows, 3 columns_
 | `updated_at` | TIMESTAMP | NULLABLE |  |
 
 #### `PMS_system.ReconciliationApprovals`
+
+Approval audit trail for reconciliations: who approved which
+batch/txn, when, and any attached notes.
 
 _2 rows, 6 columns_
 
@@ -820,6 +991,11 @@ _2 rows, 6 columns_
 | `CreatedAt` | TIMESTAMP | NULLABLE |  |
 
 #### `PMS_system.Reconciliation_view2`
+
+Convenience view that joins Reconciliations back to the underlying
+PMS and bank rows (with location, practice, amount, carrier). Use
+for reporting when you need the matched pair plus context in one
+row.
 
 _0 rows, 11 columns_
 
@@ -838,6 +1014,11 @@ _0 rows, 11 columns_
 | `business_day_diff` | INTEGER | NULLABLE |  |
 
 #### `PMS_system.Reconciliations`
+
+Authoritative match results: one row per reconciled pair
+(PMS payment x Bank transaction) with amount applied, created/updated
+timestamps, status, modification history, and rejection reason.
+Start here for "what is matched, what is still open" questions.
 
 _914 rows, 16 columns_
 
@@ -862,6 +1043,11 @@ _914 rows, 16 columns_
 
 #### `PMS_system.SageIntacct_BankTransactions`
 
+Bank-side view of transactions exported from Sage Intacct, filtered
+and enriched for the matching engine. One row per bank line with
+account, posting date, amount, payer, description, and transaction
+type. Pair with PMSTxn for reconciliation queries.
+
 _0 rows, 16 columns_
 
 | Column | Type | Mode | Description |
@@ -885,6 +1071,9 @@ _0 rows, 16 columns_
 
 #### `PMS_system.StrictMatch`
 
+Strict exact-match candidates (amount + date + identifier equality).
+Highest-confidence subset, usually auto-approved.
+
 _98 rows, 2 columns_
 
 | Column | Type | Mode | Description |
@@ -893,6 +1082,10 @@ _98 rows, 2 columns_
 | `PMS_Mapping` | STRING | NULLABLE |  |
 
 #### `PMS_system.clean_txn`
+
+Cleaned / normalised copy of PMSTxn and bank rows used as the input
+to the matching pipeline. Do not query for reporting; use PMSTxn
+or SageIntacct_BankTransactions.
 
 _583 rows, 5 columns_
 
@@ -906,6 +1099,9 @@ _583 rows, 5 columns_
 
 #### `PMS_system.final_cleaned_result`
 
+Final cleaned output of the reconciliation pipeline for a run.
+Typically consumed by downstream dashboards.
+
 _583 rows, 4 columns_
 
 | Column | Type | Mode | Description |
@@ -917,6 +1113,9 @@ _583 rows, 4 columns_
 
 #### `PMS_system.location_id_mapping` _(EXTERNAL)_
 
+Mapping from raw PMS location identifiers to IDSO location_id. Used
+to normalise practice-level keys across PMS vendors.
+
 _0 rows, 3 columns_
 
 | Column | Type | Mode | Description |
@@ -927,6 +1126,10 @@ _0 rows, 3 columns_
 
 #### `PMS_system.location_xwalk`
 
+Cross-walk between bank-account-level location identifiers and PMS
+location_id. Joins bank rows (where only an account is present) to
+a practice.
+
 _17 rows, 3 columns_
 
 | Column | Type | Mode | Description |
@@ -936,6 +1139,9 @@ _17 rows, 3 columns_
 | `updated_at` | TIMESTAMP | NULLABLE |  |
 
 #### `PMS_system.mapping_norm`
+
+Normalised payer-name -> canonical-vendor mapping used by the
+fuzzy matcher. Regenerated from dim_mappings.bank_description_*.
 
 _837 rows, 4 columns_
 
@@ -948,6 +1154,9 @@ _837 rows, 4 columns_
 
 #### `PMS_system.sage_bank_account_mapping`
 
+Bank account id (Sage) -> practice / entity mapping. Same idea as
+location_xwalk but at the bank-account grain.
+
 _0 rows, 4 columns_
 
 | Column | Type | Mode | Description |
@@ -958,6 +1167,9 @@ _0 rows, 4 columns_
 | `Location` | STRING | REQUIRED |  |
 
 #### `PMS_system.transaction_types_custom_categories_raw` _(EXTERNAL)_
+
+User-defined overrides for transaction type / category classification
+used in reconciliation. Tweak here to reclassify payment types.
 
 _0 rows, 9 columns_
 
@@ -975,6 +1187,9 @@ _0 rows, 9 columns_
 
 #### `PMS_system.update_mapped`
 
+Audit log of mapping-table updates (when a cross-walk row was added
+or edited, by whom).
+
 _583 rows, 5 columns_
 
 | Column | Type | Mode | Description |
@@ -987,7 +1202,17 @@ _583 rows, 5 columns_
 
 ### `Sage_system_v2` (9 tables)
 
+Sage Intacct general ledger and bank data. This is the authoritative
+accounting source: every GL journal entry line and every bank-side
+transaction as booked in Sage. Join gl_journal_entry_lines to the
+dim_* columns to slice by department, location, vendor, customer,
+project, employee, item, or class. Use for any finance, close,
+cash-flow, or revenue-by-dimension question.
+
 #### `Sage_system_v2.bank_id_practice_mapping`
+
+Bank account -> practice crosswalk at the Sage level. Join
+sage_bank_transactions_v2.bank_account_id to get a practice_id.
 
 _72 rows, 3 columns_
 
@@ -998,6 +1223,9 @@ _72 rows, 3 columns_
 | `updated_at` | TIMESTAMP | NULLABLE |  |
 
 #### `Sage_system_v2.bank_transaction_summaries`
+
+Rolled-up bank transaction summaries (by bank, day, and posting
+status). Faster for dashboards than scanning the raw txn table.
 
 _0 rows, 5 columns_
 
@@ -1011,6 +1239,9 @@ _0 rows, 5 columns_
 
 #### `Sage_system_v2.entry_tracking`
 
+Tracking table: which GL journal entries have been picked up by
+downstream pipelines (reconciliation, reporting). Operational only.
+
 _0 rows, 4 columns_
 
 | Column | Type | Mode | Description |
@@ -1021,6 +1252,11 @@ _0 rows, 4 columns_
 | `fetched_at` | TIMESTAMP | REQUIRED |  |
 
 #### `Sage_system_v2.gl_journal_entry_lines`
+
+The GL fact: one row per journal-entry line with GL account, debit/
+credit amount, dimension keys (department, location, vendor,
+customer, project, employee, item, class), currency, and
+reconciliation status. The primary source for financial reporting.
 
 _967,036 rows, 45 columns_
 
@@ -1074,6 +1310,11 @@ _967,036 rows, 45 columns_
 
 #### `Sage_system_v2.sage_bank_transactions_v2`
 
+Bank-side transactions as exported from Sage Intacct bank feeds.
+One row per bank line with account, posting date, amount, payer,
+description. Pairs with PMS_system.PMSTxn in the reconciliation
+pipeline.
+
 _89,207 rows, 17 columns_
 
 | Column | Type | Mode | Description |
@@ -1098,6 +1339,9 @@ _89,207 rows, 17 columns_
 
 #### `Sage_system_v2.sync_metadata`
 
+Operational bookkeeping for the Sage sync pipeline. Not for
+reporting.
+
 _569 rows, 4 columns_
 
 | Column | Type | Mode | Description |
@@ -1108,6 +1352,8 @@ _569 rows, 4 columns_
 | `created_at` | TIMESTAMP | REQUIRED |  |
 
 #### `Sage_system_v2.sync_state`
+
+Operational sync cursor for bank-side rows. Not for reporting.
 
 _1 rows, 7 columns_
 
@@ -1123,6 +1369,8 @@ _1 rows, 7 columns_
 
 #### `Sage_system_v2.sync_state_gl`
 
+Operational sync cursor for GL rows. Not for reporting.
+
 _1 rows, 5 columns_
 
 | Column | Type | Mode | Description |
@@ -1134,6 +1382,9 @@ _1 rows, 5 columns_
 | `updated_at` | TIMESTAMP | NULLABLE |  |
 
 #### `Sage_system_v2.temp_gl_lines_1773341871`
+
+Temporary scratch table from a specific GL backfill run (suffix is
+the run id). Not authoritative; do not query for reporting.
 
 _250 rows, 45 columns_
 
@@ -1187,7 +1438,19 @@ _250 rows, 45 columns_
 
 ### `dim_mappings` (10 tables)
 
+Shared dimension / lookup tables used across the other datasets
+(especially PMS_system's reconciliation engine). Bank-description
+parsing rules, payment-category mappings, bank-vendor rules, and
+PMS provider / location mappings. Treat as slowly-changing reference
+data. Backup tables ("..._backup_YYYYMMDD") are point-in-time
+snapshots retained for audit; use the non-backup version for current
+lookups.
+
 #### `dim_mappings.bank_account_mapping`
+
+Canonical map from bank_account_id -> practice_name / location_id /
+updated_by / updated_at. Used to put a practice label on any bank
+row.
 
 _176 rows, 5 columns_
 
@@ -1200,6 +1463,10 @@ _176 rows, 5 columns_
 | `location_id` | STRING | NULLABLE |  |
 
 #### `dim_mappings.bank_description_mapping`
+
+Rules that parse a raw bank transaction description into vendor /
+category / is_carrier flag / approval status. Used by PMS_system
+fuzzy matching.
 
 _70,292 rows, 9 columns_
 
@@ -1217,6 +1484,9 @@ _70,292 rows, 9 columns_
 
 #### `dim_mappings.bank_description_mapping_backup_20260409`
 
+Point-in-time snapshot of bank_description_mapping taken 2026-04-09.
+Audit only.
+
 _65,876 rows, 9 columns_
 
 | Column | Type | Mode | Description |
@@ -1232,6 +1502,9 @@ _65,876 rows, 9 columns_
 | `updated_at` | TIMESTAMP | NULLABLE |  |
 
 #### `dim_mappings.bank_description_mapping_backup_20260410`
+
+Point-in-time snapshot of bank_description_mapping taken 2026-04-10.
+Audit only.
 
 _65,876 rows, 9 columns_
 
@@ -1249,6 +1522,10 @@ _65,876 rows, 9 columns_
 
 #### `dim_mappings.bank_description_staging`
 
+Staging area for proposed bank_description_mapping changes before
+they get promoted to the live table. Includes confidence,
+first_seen_at, processed_at.
+
 _59,121 rows, 6 columns_
 
 | Column | Type | Mode | Description |
@@ -1262,6 +1539,10 @@ _59,121 rows, 6 columns_
 
 #### `dim_mappings.bank_vendor_rules`
 
+Prefix / vendor rules table: maps raw description prefixes to
+canonical vendors. Paired with bank_description_mapping for
+bank-side normalisation.
+
 _9,565 rows, 6 columns_
 
 | Column | Type | Mode | Description |
@@ -1274,6 +1555,10 @@ _9,565 rows, 6 columns_
 | `updated_at` | TIMESTAMP | REQUIRED |  |
 
 #### `dim_mappings.payment_category_mapping`
+
+Maps normalised payment types to a GL category / ledger category,
+scoped by location and vendor. Drives auto-categorisation of
+incoming bank rows.
 
 _1,181 rows, 11 columns_
 
@@ -1293,6 +1578,9 @@ _1,181 rows, 11 columns_
 
 #### `dim_mappings.payment_category_mapping_backup_20260409`
 
+Point-in-time snapshot of payment_category_mapping taken
+2026-04-09. Audit only.
+
 _1,181 rows, 11 columns_
 
 | Column | Type | Mode | Description |
@@ -1310,6 +1598,11 @@ _1,181 rows, 11 columns_
 | `updated_by` | STRING | NULLABLE |  |
 
 #### `dim_mappings.pms_location_mapping`
+
+Location dimension enriched from the PMS side: location_id,
+location_name, regional grouping, deal name, full name, PMS name,
+updated_by. Used to label PMS rows with the standard IDSO
+location hierarchy.
 
 _49 rows, 12 columns_
 
@@ -1329,6 +1622,11 @@ _49 rows, 12 columns_
 | `zip` | STRING | NULLABLE |  |
 
 #### `dim_mappings.pms_provider_mapping`
+
+Provider (doctor / hygienist) dimension from the PMS side:
+location_id, location_name, provider_name, position, updated_by,
+additional_data. Use for provider-level reporting such as
+"production by doctor."
 
 _8,011 rows, 12 columns_
 
