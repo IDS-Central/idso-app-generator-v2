@@ -318,3 +318,55 @@ Scope: land the five write-tool handlers already registered as stubs in Commit 1
 4. `create_cloud_build_trigger`  `cloudbuild.ts` (new file)
 5. `deploy_cloud_run`  `run.ts` (new file)
 Each handler: inputs validated with Zod, narrow positive-allowlist, returns `{ ok, resource, details }`, logs structured events, respects the existing approval contract (already proven end-to-end in the loop).
+
+## 2026-04-23  Commit 2b part 1/4 (`iam_create_sa`) validated end-to-end
+
+### Two bugs found & fixed while smoke-testing
+
+**Bug 1  agent loop lost approved tool on resume (`6541412`)**
+- Reproduced: POST /turn  `awaiting_approval`, POST /approve  Anthropic 400 `invalid_request_error: messages.1: tool_use ids were found without tool_result blocks immediately after`.
+- Root cause: `backend/src/agent/loop.ts` rehydrated the full BQ-persisted message history and sent it to Anthropic **before** dispatching the freshly-approved tool, so the prior `tool_call` turn had no matching `tool_result` yet.
+- Fix: at top of each loop iteration, scan for orphan `tool_call` turns (no matching `tool_result` by `tool_use_id`), re-check approval state for write tools, either return `awaiting_approval` again or dispatch + append `tool_result` turn, **then** rehydrate + call Anthropic. New log events: `agent_loop_awaiting_approval_resume`, `agent_loop_resume_tool_dispatched`.
+
+**Bug 2  iam_create_sa dropped role grants on fresh SAs (`84ef1e2`)**
+- Reproduced: first successful smoke test created the SA but `get-iam-policy` returned zero roles bound.
+- Root cause: fresh-SA eventual consistency  after `iam.projects.serviceAccounts.create` succeeds, the new member isn't immediately visible to `resourcemanager.projects.setIamPolicy` and it errors `does not exist`.
+- Fix in `backend/src/tools/iam.ts`: new `withIamPolicyRetry<T>()` helper  5 attempts, exponential backoff (500ms/1s/2s/4s/8s), retries on `/does not exist|not found|etag|concurren/i` or HTTP 409. Added 2s sleep right after `create` succeeds. Wrapped `getIamPolicy`+`setIamPolicy` cycle; `rolesAlreadyBound` re-initialised per attempt. Log events now include `attempt`.
+
+### Smoke-test recipe (verified working)
+1. `URL=$(gcloud run services describe idso-app-generator-v2-backend-dev --region=us-central1 --format='value(status.url)')`
+2. `TOKEN=$(gcloud auth print-identity-token)`
+3. `SESSION=$(curl -s -X POST "$URL/v1/sessions" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{}' | jq -r .id)`
+4. `curl -s -X POST "$URL/v1/chat/$SESSION/turn" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"message":"Please create a runtime service account for an app called <name>"}'`
+   - expected: `{"status":"awaiting_approval","toolUseId":"toolu_...","toolName":"iam_create_sa",...}`
+5. `curl -s -X POST "$URL/v1/chat/$SESSION/approve" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"tool_use_id":"toolu_...","decision":"approved"}'`
+   - **IMPORTANT**: approve endpoint expects `tool_use_id` (snake_case), NOT `toolUseId`
+   - expected: `{"status":"completed","finalText":"...Service Account Details: Email: idso-<name>-runtime@...","iterations":1}`
+
+### Result (smoke test with `app_name=smoke-test-2c`)
+- SA `idso-smoke-test-2c-runtime@reconciliation-dashboard.iam.gserviceaccount.com` created.
+- `displayName`: "IDSO runtime SA for smoke-test-2c"
+- `description`: "Per-app runtime SA for the generated idso-smoke-test-2c app. Managed by idso-app-generator-v2."
+- Project roles bound on SA (verified via `get-iam-policy --flatten --filter`): **exactly** `roles/bigquery.dataViewer` + `roles/bigquery.jobUser`. No other roles. Matches schema spec.
+- Test SAs (`smoke-test-2b`, `smoke-test-2c`) cleaned up after verification via `remove-iam-policy-binding` + `service-accounts delete`.
+
+### Commits this session (on `origin/main`)
+- `6541412` fix(agent): dispatch pending tool_call turns at loop resume (loop.ts, 59 ins / 2 del)
+- `84ef1e2` fix(iam): retry setIamPolicy to handle fresh-SA eventual consistency (iam.ts, 105 ins / 38 del)
+- Both builds SUCCESS in `us-central1`; active revision serving 100% traffic.
+
+### Status
+-  Commit 2b part 1/4  `iam_create_sa`  handler wired, tsc clean, build SUCCESS, **smoke-test passed**, GCP-verified.
+-  Commit 2b part 2/4  `gh_create_repo`  next up (likely needs GitHub App credentials setup).
+-  Commit 2b part 3/4  `cloudbuild_create_trigger`.
+-  Commit 2b part 4/4  `cloudrun_deploy`.
+
+### Deferred follow-ups still tracked
+- `request.headers.authorisations` typo in `backend/src/auth.ts` (British plural, pre-dates Phase 2).
+- Auth-bypass env vars not declared in `cloudbuild.yaml` (currently set by manual `gcloud run services update`).
+- No smoke-test recipe doc at `docs/SMOKE-TEST.md` yet  recipe above is the canonical known-good procedure.
+- 10 npm vulnerabilities from googleapis install.
+- `lives.ts` FS/git anomaly still unresolved.
+
+### Operational note
+- `gcloud builds describe <ID>` can silently hang / return empty in this Cloud Shell. Use `gcloud builds list --limit=1 --region=us-central1 --format='value(status,substitutions.COMMIT_SHA)'` for polling instead.
