@@ -1,0 +1,5490 @@
+{
+  "project": "reconciliation-dashboard",
+  "generatedAt": "2026-04-23T01:56:34.072Z",
+  "datasets": {
+    "ADP_system": {
+      "tables": {
+        "adp_payroll_output": {
+          "tableId": "adp_payroll_output",
+          "type": "TABLE",
+          "description": "ADP payroll output - one row per employee × payment × department allocation",
+          "numRows": 102447,
+          "numBytes": 44582927,
+          "lastModifiedTime": "2026-04-21T21:02:55.153Z",
+          "location": "us-central1",
+          "columns": [
+            {
+              "name": "item_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "payroll_group",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "payroll_group_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "payroll_year",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "payroll_week",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "pay_period_start",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "pay_period_end",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "payment_date",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "associate_oid",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "employee_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "department_code",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "business_unit_code",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "job_title",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "ids_location_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "gl_category",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "gross_earnings",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "regular_earnings",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "overtime_earnings",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "bonus_earnings",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "other_earnings",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "hours_worked",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "hourly_rate",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "pay_basis",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "net_payment",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "employer_fica_ss",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "employer_fica_med",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "employer_futa",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "employer_sui",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "employer_total_taxes",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "ingested_at",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "run_status",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "composite_key",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "employees_dim": {
+          "tableId": "employees_dim",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 4577,
+          "numBytes": 403308,
+          "lastModifiedTime": "2026-04-02T18:26:14.007Z",
+          "location": "us-central1",
+          "columns": [
+            {
+              "name": "employee_id",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "first_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "last_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "email",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "hire_date",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "termination_date",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "employment_status",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "job_title",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "department",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "cost_center_code",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "gl_account_code",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "created_date",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "modified_date",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "_load_timestamp",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "employees_dim_staging": {
+          "tableId": "employees_dim_staging",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 4577,
+          "numBytes": 403308,
+          "lastModifiedTime": "2026-04-02T18:26:08.547Z",
+          "location": "us-central1",
+          "columns": [
+            {
+              "name": "employee_id",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "first_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "last_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "email",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "hire_date",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "termination_date",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "employment_status",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "job_title",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "department",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "cost_center_code",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "gl_account_code",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "created_date",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "modified_date",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "_load_timestamp",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "payroll_sync_state": {
+          "tableId": "payroll_sync_state",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 1,
+          "numBytes": 79,
+          "lastModifiedTime": "2026-04-07T19:00:39.572Z",
+          "location": "us-central1",
+          "columns": [
+            {
+              "name": "sync_entity",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "last_processed_item_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "last_processed_skip",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "total_processed_all_time",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "updated_timestamp",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "sync_metadata": {
+          "tableId": "sync_metadata",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 2,
+          "numBytes": 100,
+          "lastModifiedTime": "2026-04-07T14:29:17.630Z",
+          "location": "us-central1",
+          "columns": [
+            {
+              "name": "sync_entity",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "last_modified_timestamp",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "last_checked_timestamp",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "batch_count",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "sync_status",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "updated_timestamp",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "timecards_dim": {
+          "tableId": "timecards_dim",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 0,
+          "numBytes": 0,
+          "lastModifiedTime": "2026-03-26T19:52:10.572Z",
+          "location": "us-central1",
+          "columns": [
+            {
+              "name": "timecard_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": "Unique ID: associateOID_periodStartDate"
+            },
+            {
+              "name": "employee_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": "ADP associateOID"
+            },
+            {
+              "name": "period_start_date",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": "Period start date"
+            },
+            {
+              "name": "period_end_date",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": "Period end date"
+            },
+            {
+              "name": "hours_worked",
+              "type": "NUMERIC",
+              "mode": "NULLABLE",
+              "description": "Hours worked"
+            },
+            {
+              "name": "total_hours",
+              "type": "NUMERIC",
+              "mode": "NULLABLE",
+              "description": "Total hours"
+            },
+            {
+              "name": "_load_timestamp",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": "Load timestamp"
+            },
+            {
+              "name": "_load_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": "Load batch ID"
+            }
+          ]
+        }
+      }
+    },
+    "Dentira_system": {
+      "tables": {
+        "dentira_invoice_items": {
+          "tableId": "dentira_invoice_items",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 31085,
+          "numBytes": 9529704,
+          "lastModifiedTime": "2026-04-21T15:33:08.560Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "load_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "location_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "invoice_number",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "supplier_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "sku",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "item_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "unit_price",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "quantity",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "total",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "gl_code",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "account_code_parent_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "account_code_location_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "account_code_account",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "supplier_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "vendor_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "source_file",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "processed_date",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "invoice_date",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "invoice_received_date",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "order_item_received_date",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "invoice_due_date",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "order_date",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "invoice_status",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "payment_status",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "account_code",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "dentira_invoices": {
+          "tableId": "dentira_invoices",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 3558,
+          "numBytes": 643245,
+          "lastModifiedTime": "2026-04-21T15:33:18.901Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "load_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "location_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "invoice_number",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "supplier_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "supplier_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "clinic_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "email",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "invoice_date",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "invoice_type",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "status",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "vendor_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "total_amount",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "source_file",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "load_timestamp",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "dentira_load_audit": {
+          "tableId": "dentira_load_audit",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 12,
+          "numBytes": 1369,
+          "lastModifiedTime": "2026-04-21T15:33:38.517Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "load_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "source_file",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "upload_timestamp",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "load_start",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "load_end",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "status",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "row_count",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "rows_inserted",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "rows_updated",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "error_message",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "processing_duration_seconds",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "dentira_orders": {
+          "tableId": "dentira_orders",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 2658,
+          "numBytes": 598742,
+          "lastModifiedTime": "2026-04-21T15:33:16.749Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "location_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "po_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "clinic_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "email",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "order_date",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "received_date",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "status",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "supplier_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "vendor_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "order_type",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "orderer_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "orderer_email",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "order_approver",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "is_dentira_order",
+              "type": "BOOLEAN",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "is_off_catalog",
+              "type": "BOOLEAN",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "is_trusted",
+              "type": "BOOLEAN",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "total_amount",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "source_file",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "load_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "load_timestamp",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "dentira_orders_items": {
+          "tableId": "dentira_orders_items",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 19355,
+          "numBytes": 6337293,
+          "lastModifiedTime": "2026-04-21T15:33:06.759Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "location_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "po_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "unspsc",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "supplier_product_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "item_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "supplier_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "supplier_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "uom",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "category",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "manufacturer_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "unit_price",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "ordered_quantity",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "received_quantity",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "total",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "gl_code",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "source_file",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "load_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "processed_date",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "order_date",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "status",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "manufacturer_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "invoice_number",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "invoice_date",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "invoice_status",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "vendor_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "supplier",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "dentira_practices": {
+          "tableId": "dentira_practices",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 86,
+          "numBytes": 4281,
+          "lastModifiedTime": "2026-04-21T15:33:28.930Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "location_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "clinic_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "email",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "dentira_suppliers": {
+          "tableId": "dentira_suppliers",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 79,
+          "numBytes": 2901,
+          "lastModifiedTime": "2026-04-21T15:33:35.961Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "supplier_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "supplier_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "vendor_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "vendor_alias",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        }
+      }
+    },
+    "PMS_system": {
+      "tables": {
+        "AcceptedMatches": {
+          "tableId": "AcceptedMatches",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 67,
+          "numBytes": 12747,
+          "lastModifiedTime": "2026-03-24T20:19:08.999Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "MatchID",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "BankTxn",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "PMSTxn",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "AcceptedBatchID",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "Status",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "AcceptedBy",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "AcceptedAt",
+              "type": "TIMESTAMP",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "UndoneAt",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "UndoneBy",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "UndoReason",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "AuditLogs": {
+          "tableId": "AuditLogs",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 82,
+          "numBytes": 17565,
+          "lastModifiedTime": "2026-03-24T20:30:35.399Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "AuditID",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "Action",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "EntityType",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "EntityID",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "UserEmail",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "Timestamp",
+              "type": "TIMESTAMP",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "Changes",
+              "type": "JSON",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Notes",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "IPAddress",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "BankList_FuzzyNorm": {
+          "tableId": "BankList_FuzzyNorm",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 841,
+          "numBytes": 44775,
+          "lastModifiedTime": "2025-11-23T11:22:15.866Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "Payer_Name_Description",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PMS_Mapping",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "n2",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "s2",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "BankPayerList_Normalized": {
+          "tableId": "BankPayerList_Normalized",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 842,
+          "numBytes": 44859,
+          "lastModifiedTime": "2026-04-23T01:40:28.195Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "Payer_Name_Description",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PMS_Mapping",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "normalized_list",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "soundex_list",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "BankTxn": {
+          "tableId": "BankTxn",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 48865,
+          "numBytes": 27389386,
+          "lastModifiedTime": "2026-04-23T01:40:37.589Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "Bank_Transaction_ID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Date",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Transaction_Type",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Payment_Description",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Amount",
+              "type": "NUMERIC",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Status",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Bank_Acct_No",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "location_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "payer_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "pms_mapping",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "ID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Location",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "ContentHash",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "sage_description",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "BankTxn_CSV_files_Upload_Log": {
+          "tableId": "BankTxn_CSV_files_Upload_Log",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 3759,
+          "numBytes": 457593,
+          "lastModifiedTime": "2026-04-22T10:00:58.294Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "FileName",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Bank_Acct_No",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Inserted_Rows",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Skipped_Loan_Sweep_Rows",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Processed_At",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "ID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "LogID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "BankTxn_CleanTemp": {
+          "tableId": "BankTxn_CleanTemp",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 48865,
+          "numBytes": 5309042,
+          "lastModifiedTime": "2026-04-23T01:38:18.478Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "ID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "payer_clean",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "BankTxn_Excluded_Archive": {
+          "tableId": "BankTxn_Excluded_Archive",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 19446,
+          "numBytes": 3945510,
+          "lastModifiedTime": "2025-11-20T07:32:30.241Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "Bank_Transaction_ID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Date",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Transaction_Type",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Payment_Description",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Amount",
+              "type": "NUMERIC",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Status",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Bank_Acct_No",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "location_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "payer_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "pms_mapping",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "ID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Location",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "BankTxn_FuzzyNorm": {
+          "tableId": "BankTxn_FuzzyNorm",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 1052,
+          "numBytes": 83727,
+          "lastModifiedTime": "2025-11-23T11:22:14.234Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "ID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "payer_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "n1",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "s1",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "BankTxn_MapFuzzy": {
+          "tableId": "BankTxn_MapFuzzy",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 0,
+          "numBytes": 0,
+          "lastModifiedTime": "2025-11-21T12:47:16.092Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "ID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PMS_Mapping",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "BankTxn_MapStrict": {
+          "tableId": "BankTxn_MapStrict",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 0,
+          "numBytes": 0,
+          "lastModifiedTime": "2025-11-21T12:47:14.156Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "ID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PMS_Mapping",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "BankTxn_MapTemp": {
+          "tableId": "BankTxn_MapTemp",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 63,
+          "numBytes": 1829,
+          "lastModifiedTime": "2026-04-23T01:40:30.622Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "ID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PMS_Mapping",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "BankTxn_Normalized": {
+          "tableId": "BankTxn_Normalized",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 63,
+          "numBytes": 8836,
+          "lastModifiedTime": "2026-04-23T01:40:25.105Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "ID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Payment_Description",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "normalized_desc",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "soundex_desc",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "BankTxn_RematchTemp": {
+          "tableId": "BankTxn_RematchTemp",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 1,
+          "numBytes": 35,
+          "lastModifiedTime": "2025-11-21T12:46:12.220Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "ID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PMS_Mapping",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "BankTxn_Staging": {
+          "tableId": "BankTxn_Staging",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 0,
+          "numBytes": 0,
+          "lastModifiedTime": "2026-01-09T11:20:39.601Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "ID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Bank_Transaction_ID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Date",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Payment_Description",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Amount",
+              "type": "NUMERIC",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Transaction_Type",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Bank_Acct_No",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "FileName",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "__insertIdContentHash",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "Bank_Payer_List": {
+          "tableId": "Bank_Payer_List",
+          "type": "EXTERNAL",
+          "description": null,
+          "numRows": 0,
+          "numBytes": 0,
+          "lastModifiedTime": "2025-08-26T18:46:08.099Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "Payer_Name_Description",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PMS_Mapping",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "Bank_Transaction_Timing": {
+          "tableId": "Bank_Transaction_Timing",
+          "type": "EXTERNAL",
+          "description": null,
+          "numRows": 0,
+          "numBytes": 0,
+          "lastModifiedTime": "2026-01-08T19:45:25.865Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "PMS_Mappings",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Priority_Date",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Exclude_Date",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Possible_Merchant_Fee",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "Bank_Transaction_Timing_BQ": {
+          "tableId": "Bank_Transaction_Timing_BQ",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 56,
+          "numBytes": 1189,
+          "lastModifiedTime": "2026-04-23T01:24:05.741Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "PMS_Mappings",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Priority_Date",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Exclude_Date",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Possible_Merchant_Fee",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "BatchDecisions": {
+          "tableId": "BatchDecisions",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 0,
+          "numBytes": 0,
+          "lastModifiedTime": "2025-12-14T05:12:29.775Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "DecisionID",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "BatchID",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "BankTxn",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "Decision",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "DecisionBy",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "DecisionAt",
+              "type": "TIMESTAMP",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "Reason",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "BatchRankings": {
+          "tableId": "BatchRankings",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 0,
+          "numBytes": 0,
+          "lastModifiedTime": "2026-01-14T19:20:20.007Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "BatchID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "BankTxn",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Criteria",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Rank",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Confidence",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "RankedBy",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "RankedAt",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Notes",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "LLMRationale",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "Criteria1_Candidates": {
+          "tableId": "Criteria1_Candidates",
+          "type": "VIEW",
+          "description": null,
+          "numRows": 0,
+          "numBytes": 0,
+          "lastModifiedTime": "2025-12-09T17:53:28.020Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "BankTxn",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PMSTxn",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "AmountApplied",
+              "type": "NUMERIC",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "BankDate",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PMSDate",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "location_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "pms_mapping",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "bank_vendor",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "business_day_diff",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "Criteria2_Candidates": {
+          "tableId": "Criteria2_Candidates",
+          "type": "VIEW",
+          "description": null,
+          "numRows": 0,
+          "numBytes": 0,
+          "lastModifiedTime": "2025-12-09T18:35:46.802Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "Bank_Transaction_ID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "BankDate",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "location_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "pms_mapping",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "BankAmount",
+              "type": "NUMERIC",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Payment_Description",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Bank_Acct_No",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Transactions_ID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PMSDate",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PMSAmount",
+              "type": "NUMERIC",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "AmountApplied",
+              "type": "NUMERIC",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PracticeID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "bank_vendor",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Payment_type",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Carrier_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Patient_Full_Name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Payment_Code_ID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "custom_type",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Claim_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Status",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "business_day_diff",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "Criteria3_Candidates": {
+          "tableId": "Criteria3_Candidates",
+          "type": "VIEW",
+          "description": null,
+          "numRows": 0,
+          "numBytes": 0,
+          "lastModifiedTime": "2025-12-09T18:39:10.419Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "Bank_Transaction_ID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "BankDate",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "location_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "pms_mapping",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "BankAmount",
+              "type": "NUMERIC",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Payment_Description",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Bank_Acct_No",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Transactions_ID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PMSDate",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PMSAmount",
+              "type": "NUMERIC",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "AmountApplied",
+              "type": "NUMERIC",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PracticeID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "bank_vendor",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Payment_type",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Carrier_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Patient_Full_Name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Payment_Code_ID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "custom_type",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Claim_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Status",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "business_day_diff",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "DailyReconciliationSummary": {
+          "tableId": "DailyReconciliationSummary",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 1,
+          "numBytes": 40,
+          "lastModifiedTime": "2026-04-23T01:08:05.254Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "run_date",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "total_inserts",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "matched_count",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "unmatched_count",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "last_insert_time",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "FuzzyMap": {
+          "tableId": "FuzzyMap",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 1052,
+          "numBytes": 38346,
+          "lastModifiedTime": "2025-11-23T11:22:18.010Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "ID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PMS_Mapping",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "LLM_BatchPayload": {
+          "tableId": "LLM_BatchPayload",
+          "type": "VIEW",
+          "description": null,
+          "numRows": 0,
+          "numBytes": 0,
+          "lastModifiedTime": "2025-12-10T10:44:44.299Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "BatchID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "BankTxn",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Criteria",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Status",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "CreatedAt",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PayloadJSON",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "LLM_RankResults": {
+          "tableId": "LLM_RankResults",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 5,
+          "numBytes": 21065,
+          "lastModifiedTime": "2025-12-16T20:21:31.737Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "ResultID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "BankTxn",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Criteria",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "CreatedAt",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "SchemaVersion",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Model",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PromptVersion",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "InputPayloadJSON",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "OutputJSON",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "ChosenBatchIDs",
+              "type": "STRING",
+              "mode": "REPEATED",
+              "description": null
+            },
+            {
+              "name": "Rankings",
+              "type": "RECORD",
+              "mode": "REPEATED",
+              "description": null
+            },
+            {
+              "name": "Rankings.BatchID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Rankings.Rank",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Rankings.Confidence",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Rankings.Rationale",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "Match_Config": {
+          "tableId": "Match_Config",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 194,
+          "numBytes": 6721,
+          "lastModifiedTime": "2025-10-07T13:30:04.369Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "Channel",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "ToleranceCents",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "BusinessDayWindow",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "PMSTxn": {
+          "tableId": "PMSTxn",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 1477731,
+          "numBytes": 488633553,
+          "lastModifiedTime": "2026-04-22T23:30:12.756Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "Transactions_ID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Patient_Full_Name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Date_of_Transaction",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Payment_Code_ID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "custom_type",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Amount",
+              "type": "NUMERIC",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PracticeID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Claim_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Carrier_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Status",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Payment_type",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "claim",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "bank_vendor",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "PMS_Criteria2": {
+          "tableId": "PMS_Criteria2",
+          "type": "VIEW",
+          "description": null,
+          "numRows": 0,
+          "numBytes": 0,
+          "lastModifiedTime": "2025-12-09T12:33:00.480Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "PracticeID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Payment_type",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "bank_vendor",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "bank_vendor_norm",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PMS_Date",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Total_PMS_Amount",
+              "type": "NUMERIC",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PMS_Transactions_List",
+              "type": "STRING",
+              "mode": "REPEATED",
+              "description": null
+            }
+          ]
+        },
+        "ReconBatchItems": {
+          "tableId": "ReconBatchItems",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 18320,
+          "numBytes": 4486163,
+          "lastModifiedTime": "2026-04-22T09:33:19.710Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "BatchItemID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "BatchID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "BankTxn",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PMSTxn",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "AmountApplied",
+              "type": "NUMERIC",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PMSDate",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Vendor",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "IsFlagged",
+              "type": "BOOLEAN",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "FlagReason",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "CreatedAt",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "ReconBatchItems_UI": {
+          "tableId": "ReconBatchItems_UI",
+          "type": "VIEW",
+          "description": null,
+          "numRows": 0,
+          "numBytes": 0,
+          "lastModifiedTime": "2025-12-09T14:51:56.328Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "BatchItemID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "BatchID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "BankTxn",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PMSTxn",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "AmountApplied",
+              "type": "NUMERIC",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PMSDate",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Vendor",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "IsFlagged",
+              "type": "BOOLEAN",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "FlagReason",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "CreatedAt",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "ComputedIsFlagged",
+              "type": "BOOLEAN",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "ComputedFlagReason",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "ReconBatches": {
+          "tableId": "ReconBatches",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 3946,
+          "numBytes": 1893806,
+          "lastModifiedTime": "2026-04-22T23:38:10.407Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "BatchID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "BankTxn",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Criteria",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Status",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Rank",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Confidence",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "CreatedBy",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "CreatedAt",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Notes",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "LLMRationale",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "RejectedBy",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "RejectedAt",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "UpdatedBy",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "UpdatedAt",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "ModificationAction",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "ReconBatches_UI": {
+          "tableId": "ReconBatches_UI",
+          "type": "VIEW",
+          "description": null,
+          "numRows": 0,
+          "numBytes": 0,
+          "lastModifiedTime": "2026-01-04T09:52:22.273Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "BatchID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "BankTxn",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Criteria",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Status",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Rank",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Confidence",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "CreatedBy",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "CreatedAt",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Notes",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "LLMRationale",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "UpdatedBy",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "UpdatedAt",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "ModificationAction",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "ComputedStatus",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "ReconCheckpoint": {
+          "tableId": "ReconCheckpoint",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 1,
+          "numBytes": 125,
+          "lastModifiedTime": "2026-04-22T23:38:12.654Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "checkpoint_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "last_banktxn_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "updated_at",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "ReconciliationApprovals": {
+          "tableId": "ReconciliationApprovals",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 2,
+          "numBytes": 142,
+          "lastModifiedTime": "2025-10-24T07:35:29.959Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "BankTxnId",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Status",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "ApprovedBy",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "ApprovedAt",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Notes",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "CreatedAt",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "Reconciliation_view2": {
+          "tableId": "Reconciliation_view2",
+          "type": "VIEW",
+          "description": null,
+          "numRows": 0,
+          "numBytes": 0,
+          "lastModifiedTime": "2025-12-09T12:34:57.502Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "Bank_Transaction_ID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Bank_Date",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PMS_Date",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Bank_side_Vendor",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PMS_side_Vendor",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Payment_type",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Bank_Amount",
+              "type": "NUMERIC",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Total_PMS_Amount",
+              "type": "NUMERIC",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PracticeID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "location_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "business_day_diff",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "Reconciliations": {
+          "tableId": "Reconciliations",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 914,
+          "numBytes": 196890,
+          "lastModifiedTime": "2026-04-22T09:57:21.938Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "ReconID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "BankTxn",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PMSTxn",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "AmountApplied",
+              "type": "NUMERIC",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "CreatedBy",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "CreatedAt",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "UpdatedBy",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "UpdatedAt",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Status",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "IsActive",
+              "type": "BOOLEAN",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "ModificationAction",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "ModificationTimestamp",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "OriginalReconID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "RejectedBy",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "RejectedAt",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Notes",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "SageIntacct_BankTransactions": {
+          "tableId": "SageIntacct_BankTransactions",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 0,
+          "numBytes": 0,
+          "lastModifiedTime": "2026-02-19T13:49:54.512Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "account_type",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "bank_account_id",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "bank_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "posting_date",
+              "type": "DATE",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "document_type",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "match_sequence",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "document_number",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "currency",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "amount",
+              "type": "NUMERIC",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "payee",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "description",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "transaction_type",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "reconciliation_status",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "amount_to_match",
+              "type": "NUMERIC",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "etl_loaded_at",
+              "type": "TIMESTAMP",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "etl_source",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            }
+          ]
+        },
+        "StrictMatch": {
+          "tableId": "StrictMatch",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 98,
+          "numBytes": 3639,
+          "lastModifiedTime": "2025-11-23T11:22:09.894Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "ID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PMS_Mapping",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "clean_txn": {
+          "tableId": "clean_txn",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 583,
+          "numBytes": 106594,
+          "lastModifiedTime": "2025-11-19T14:25:01.038Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "Bank_Transaction_ID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Payment_Description",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "payer_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "desc_clean",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "extracted_payer",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "final_cleaned_result": {
+          "tableId": "final_cleaned_result",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 583,
+          "numBytes": 88049,
+          "lastModifiedTime": "2025-11-19T13:52:36.468Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "Bank_Transaction_ID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "match_source",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Payment_Description",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "payer_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "location_id_mapping": {
+          "tableId": "location_id_mapping",
+          "type": "EXTERNAL",
+          "description": null,
+          "numRows": 0,
+          "numBytes": 0,
+          "lastModifiedTime": "2025-09-03T22:32:57.896Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "Location",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Bank_Acct_No",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "location_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "location_xwalk": {
+          "tableId": "location_xwalk",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 17,
+          "numBytes": 859,
+          "lastModifiedTime": "2025-09-22T21:08:26.566Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "bank_location_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "pms_practice_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "updated_at",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "mapping_norm": {
+          "tableId": "mapping_norm",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 837,
+          "numBytes": 50612,
+          "lastModifiedTime": "2025-11-19T10:42:44.227Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "Payer_Name_Description",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "norm_full_key",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "norm_fuzzy_key",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "PMS_Mapping",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "sage_bank_account_mapping": {
+          "tableId": "sage_bank_account_mapping",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 0,
+          "numBytes": 0,
+          "lastModifiedTime": "2026-03-27T12:59:58.423Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "sage_bank_account_id",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "bank_acct_no",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "location_id",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "Location",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            }
+          ]
+        },
+        "transaction_types_custom_categories_raw": {
+          "tableId": "transaction_types_custom_categories_raw",
+          "type": "EXTERNAL",
+          "description": null,
+          "numRows": 0,
+          "numBytes": 0,
+          "lastModifiedTime": "2025-08-20T13:10:36.365Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "category",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "description",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "ledger_category",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "remote_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "location_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "location_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "approval_status",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "bank_vendor",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "update_mapped": {
+          "tableId": "update_mapped",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 583,
+          "numBytes": 83633,
+          "lastModifiedTime": "2025-11-19T14:25:03.803Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "Bank_Transaction_ID",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "Payment_Description",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "payer_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "extracted_payer",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "mapped_pms",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        }
+      }
+    },
+    "Sage_system_v2": {
+      "tables": {
+        "bank_id_practice_mapping": {
+          "tableId": "bank_id_practice_mapping",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 72,
+          "numBytes": 3261,
+          "lastModifiedTime": "2026-03-10T19:20:37.807Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "bank_account_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "practice_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "updated_at",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "bank_transaction_summaries": {
+          "tableId": "bank_transaction_summaries",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 0,
+          "numBytes": 0,
+          "lastModifiedTime": "2026-03-03T15:28:38.918Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "sage_key",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "href",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "posting_date",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "fetched_at",
+              "type": "TIMESTAMP",
+              "mode": "REQUIRED",
+              "description": null
+            }
+          ]
+        },
+        "entry_tracking": {
+          "tableId": "entry_tracking",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 0,
+          "numBytes": 0,
+          "lastModifiedTime": "2026-03-03T15:28:28.311Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "sage_key",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "posting_date",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "last_updated",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "fetched_at",
+              "type": "TIMESTAMP",
+              "mode": "REQUIRED",
+              "description": null
+            }
+          ]
+        },
+        "gl_journal_entry_lines": {
+          "tableId": "gl_journal_entry_lines",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 967036,
+          "numBytes": 328183090,
+          "lastModifiedTime": "2026-04-21T19:06:07.516Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "id",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "key",
+              "type": "INTEGER",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "lineNumber",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "txnType",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "entryDate",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "state",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "description",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "baseAmount",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "txnAmount",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "numberOfUnits",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "glAccount_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "glAccount_key",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "glAccount_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "journalEntry_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "journalEntry_key",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_department_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_location_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_location_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_vendor_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_vendor_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_customer_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_customer_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_project_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_project_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_employee_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_employee_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_item_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_item_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_class_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_class_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "currency_baseCurrency",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "currency_txnCurrency",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "currency_exchangeRate",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "currency_exchangeRateDate",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "reconciliation_cleared",
+              "type": "BOOLEAN",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "reconciliation_clearingDate",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "reconciliation_reconciliationDate",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "isBillable",
+              "type": "BOOLEAN",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "isBilled",
+              "type": "BOOLEAN",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "createdDateTime",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "modifiedDateTime",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "createdBy",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "modifiedBy",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "etl_loaded_at",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "etl_source",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "sage_bank_transactions_v2": {
+          "tableId": "sage_bank_transactions_v2",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 89207,
+          "numBytes": 38723034,
+          "lastModifiedTime": "2026-04-22T07:27:29.781Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "composite_key",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "account_type",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "bank_account_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "bank_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "posting_date",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "document_type",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "match_sequence",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "document_number",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "currency",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "amount",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "payee",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "description",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "transaction_type",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "reconciliation_status",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "amount_to_match",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "etl_loaded_at",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "etl_source",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "sync_metadata": {
+          "tableId": "sync_metadata",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 569,
+          "numBytes": 27312,
+          "lastModifiedTime": "2026-04-22T08:28:37.544Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "sync_name",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "last_sync_time",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "sync_completed_at",
+              "type": "TIMESTAMP",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "created_at",
+              "type": "TIMESTAMP",
+              "mode": "REQUIRED",
+              "description": null
+            }
+          ]
+        },
+        "sync_state": {
+          "tableId": "sync_state",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 1,
+          "numBytes": 96,
+          "lastModifiedTime": "2026-04-22T07:27:33.070Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "last_posting_date",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "last_key",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "last_sync_time",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "batch_number",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "records_loaded_total",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "updated_at",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "sync_state_gl": {
+          "tableId": "sync_state_gl",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 1,
+          "numBytes": 41,
+          "lastModifiedTime": "2026-03-23T13:35:30.015Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "id",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "last_key",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "batch_number",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "records_loaded_total",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "updated_at",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "temp_gl_lines_1773341871": {
+          "tableId": "temp_gl_lines_1773341871",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 250,
+          "numBytes": 80407,
+          "lastModifiedTime": "2026-03-12T18:57:53.007Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "key",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "lineNumber",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "txnType",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "entryDate",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "state",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "description",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "baseAmount",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "txnAmount",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "numberOfUnits",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "glAccount_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "glAccount_key",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "glAccount_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "journalEntry_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "journalEntry_key",
+              "type": "INTEGER",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_department_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_location_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_location_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_vendor_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_vendor_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_customer_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_customer_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_project_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_project_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_employee_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_employee_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_item_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_item_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_class_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "dimension_class_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "currency_baseCurrency",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "currency_txnCurrency",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "currency_exchangeRate",
+              "type": "FLOAT",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "currency_exchangeRateDate",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "reconciliation_cleared",
+              "type": "BOOLEAN",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "reconciliation_clearingDate",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "reconciliation_reconciliationDate",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "isBillable",
+              "type": "BOOLEAN",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "isBilled",
+              "type": "BOOLEAN",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "createdDateTime",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "modifiedDateTime",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "createdBy",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "modifiedBy",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "etl_loaded_at",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "etl_source",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        }
+      }
+    },
+    "dim_mappings": {
+      "tables": {
+        "bank_account_mapping": {
+          "tableId": "bank_account_mapping",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 176,
+          "numBytes": 11383,
+          "lastModifiedTime": "2026-04-09T08:20:15.489Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "bank_account_id",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "practice_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "updated_at",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "updated_by",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "location_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "bank_description_mapping": {
+          "tableId": "bank_description_mapping",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 70292,
+          "numBytes": 19058801,
+          "lastModifiedTime": "2026-04-22T07:30:17.989Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "description",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "parsed_vendor",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "category",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "is_carrier",
+              "type": "BOOLEAN",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "status",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "approved_by",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "approved_at",
+              "type": "TIMESTAMP",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "created_at",
+              "type": "TIMESTAMP",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "updated_at",
+              "type": "TIMESTAMP",
+              "mode": "REQUIRED",
+              "description": null
+            }
+          ]
+        },
+        "bank_description_mapping_backup_20260409": {
+          "tableId": "bank_description_mapping_backup_20260409",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 65876,
+          "numBytes": 17746188,
+          "lastModifiedTime": "2026-04-09T19:10:20.680Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "description",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "parsed_vendor",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "category",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "is_carrier",
+              "type": "BOOLEAN",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "status",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "approved_by",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "approved_at",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "created_at",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "updated_at",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "bank_description_mapping_backup_20260410": {
+          "tableId": "bank_description_mapping_backup_20260410",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 65876,
+          "numBytes": 17580400,
+          "lastModifiedTime": "2026-04-10T00:54:07.304Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "description",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "parsed_vendor",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "category",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "is_carrier",
+              "type": "BOOLEAN",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "status",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "approved_by",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "approved_at",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "created_at",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "updated_at",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "bank_description_staging": {
+          "tableId": "bank_description_staging",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 59121,
+          "numBytes": 15289826,
+          "lastModifiedTime": "2026-04-22T07:30:21.380Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "description",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "parsed_vendor",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "suggested_category",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "confidence",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "first_seen_at",
+              "type": "TIMESTAMP",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "processed_at",
+              "type": "TIMESTAMP",
+              "mode": "REQUIRED",
+              "description": null
+            }
+          ]
+        },
+        "bank_vendor_rules": {
+          "tableId": "bank_vendor_rules",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 9565,
+          "numBytes": 1657585,
+          "lastModifiedTime": "2026-04-07T16:28:11.102Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "prefix",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "vendor",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "category",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "added_by",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "created_at",
+              "type": "TIMESTAMP",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "updated_at",
+              "type": "TIMESTAMP",
+              "mode": "REQUIRED",
+              "description": null
+            }
+          ]
+        },
+        "payment_category_mapping": {
+          "tableId": "payment_category_mapping",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 1181,
+          "numBytes": 204410,
+          "lastModifiedTime": "2026-04-22T09:30:11.274Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "category",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "description",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "ledger_category",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "remote_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "location_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "approval_status",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "bank_vendor",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "created_at",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "updated_at",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "updated_by",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "payment_category_mapping_backup_20260409": {
+          "tableId": "payment_category_mapping_backup_20260409",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 1181,
+          "numBytes": 204435,
+          "lastModifiedTime": "2026-04-09T16:59:43.866Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "category",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "description",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "ledger_category",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "remote_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "location_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "approval_status",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "bank_vendor",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "created_at",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "updated_at",
+              "type": "DATE",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "updated_by",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "pms_location_mapping": {
+          "tableId": "pms_location_mapping",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 49,
+          "numBytes": 5081,
+          "lastModifiedTime": "2026-04-09T08:19:08.634Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "location_id",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "location_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "regional",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "location_name_full",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "deal",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "pms",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "updated_at",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "updated_by",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "address_1",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "address_2",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "state",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "zip",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        },
+        "pms_provider_mapping": {
+          "tableId": "pms_provider_mapping",
+          "type": "TABLE",
+          "description": null,
+          "numRows": 8011,
+          "numBytes": 1630584,
+          "lastModifiedTime": "2026-04-22T09:45:03.736Z",
+          "location": "US",
+          "columns": [
+            {
+              "name": "display_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "remote_id",
+              "type": "STRING",
+              "mode": "REQUIRED",
+              "description": null
+            },
+            {
+              "name": "type",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "update_time",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "location_id",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "location_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "provider_name",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "position",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "additional_data",
+              "type": "JSON",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "updated_at",
+              "type": "TIMESTAMP",
+              "mode": "NULLABLE",
+              "description": null
+            },
+            {
+              "name": "updated_by",
+              "type": "STRING",
+              "mode": "NULLABLE",
+              "description": null
+            }
+          ]
+        }
+      }
+    }
+  }
+}
