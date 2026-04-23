@@ -1,11 +1,14 @@
 /**
  * Dispatcher: tool name -> handler.
  *
- * Write tools (iam_create_sa, gh_create_repo, cloudbuild_create_trigger,
- * cloudrun_deploy) are intentionally NOT wired here yet. The loop gate
- * pauses on write tools for user approval; attempting to invoke one
- * before the write handlers land in a follow-up commit will return a
- * clear 'not_implemented' error instead of crashing.
+ * Write tools land progressively in Commit 2b. As of this revision:
+ *   - iam_create_sa      -> wired (see ./iam.ts)
+ *   - gh_create_repo     -> not yet implemented (returns 'not_implemented')
+ *   - cloudbuild_create_trigger -> not yet implemented
+ *   - cloudrun_deploy    -> not yet implemented
+ * The loop gate pauses on write tools for user approval before dispatch,
+ * so any unwired tool invocation returns a clear 'not_implemented'
+ * response rather than crashing the turn.
  */
 
 import type { ToolHandler, ToolHandlerDeps, ToolResult } from './types.js';
@@ -13,12 +16,14 @@ import { err } from './types.js';
 import { getTool, isWriteTool } from './schema.js';
 import { bqCatalogSearch, bqDescribeTable, bqDryRun } from './bq.js';
 import { askUser } from './ask.js';
+import { iamCreateSa } from './iam.js';
 
 const HANDLERS: Record<string, ToolHandler<any, any>> = {
   bq_catalog_search: bqCatalogSearch,
   bq_describe_table: bqDescribeTable,
   bq_dry_run: bqDryRun,
   ask_user: askUser,
+  iam_create_sa: iamCreateSa,
 };
 
 export async function dispatch(

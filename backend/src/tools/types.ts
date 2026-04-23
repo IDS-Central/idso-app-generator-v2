@@ -14,6 +14,7 @@
 
 import type { Logger } from 'pino';
 import type { BigQuery } from '@google-cloud/bigquery';
+import type { iam_v1, cloudresourcemanager_v1 } from 'googleapis';
 
 export type ToolHandlerDeps = {
   /** pino child logger scoped to the current session+turn. */
@@ -22,6 +23,15 @@ export type ToolHandlerDeps = {
   bq: BigQuery;
   /** Loaded data-catalog.json content. */
   catalog: Catalog;
+  /** IAM client for write tools (undefined when tool not used). */
+  iam?: IamClient;
+};
+
+/** IAM + Cloud Resource Manager clients bundled with the target projectId. */
+export type IamClient = {
+  iam: iam_v1.Iam;
+  crm: cloudresourcemanager_v1.Cloudresourcemanager;
+  projectId: string;
 };
 
 /* ---------- catalog shape (mirrors scripts/build-catalog.js output) ---------- */

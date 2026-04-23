@@ -35,6 +35,7 @@ import { BigQuery } from '@google-cloud/bigquery';
 import { bootstrapSessionStore } from './session/bootstrap.js';
 import { SessionStore } from './session/store.js';
 import { loadCatalog } from './tools/bq.js';
+import { buildIamClient } from './tools/iam.js';
 
 async function main(): Promise<void> {
     const config = loadConfig();
@@ -85,6 +86,11 @@ async function main(): Promise<void> {
   const tableCount = Object.values(catalog.datasets).reduce((n, d) => n + Object.keys(d.tables).length, 0);
   app.log.info({ datasets: Object.keys(catalog.datasets).length, tables: tableCount, generated_at: catalog.generatedAt }, 'catalog_loaded');
 
+  // IAM client for write tools (iam_create_sa, later cloudbuild/cloudrun).
+  // Built at boot so we fail fast if ADC is broken; safe even if the tool is never invoked.
+  const iamClient = await buildIamClient(config.projectId);
+  app.log.info({ project_id: iamClient.projectId }, 'iam_client_ready');
+
   const devBypassEmail = (process.env.AUTH_DEV_BYPASS_EMAIL ?? '').trim();
   const devBypass = (process.env.ALLOW_DEV_AUTH_BYPASS === '1' && devBypassEmail)
     ? { email: devBypassEmail }
@@ -97,7 +103,7 @@ async function main(): Promise<void> {
     auth,
     anthropic: anthropic.client,
     store: sessionStore,
-    toolDeps: { bq, catalog, logger },
+    toolDeps: { bq, catalog, logger, iam: iamClient },
     logger,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     devBypass,
