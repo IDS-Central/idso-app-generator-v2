@@ -370,3 +370,51 @@ Each handler: inputs validated with Zod, narrow positive-allowlist, returns `{ o
 
 ### Operational note
 - `gcloud builds describe <ID>` can silently hang / return empty in this Cloud Shell. Use `gcloud builds list --limit=1 --region=us-central1 --format='value(status,substitutions.COMMIT_SHA)'` for polling instead.
+
+
+---
+
+## 2026-04-23 (PM) - Commit 2b part 2/4 (gh_create_repo) validated end-to-end
+
+### What shipped
+- backend/src/tools/github.ts (350 LOC): GitHub App auth (JWT RS256 -> installation token, cached w/ 60s expiry buffer), ghCreateRepo handler, idempotent on 422 name-exists, seeds via Git Data API (fetch seed tree -> create blobs -> POST /git/trees -> POST /git/commits -> PATCH /git/refs/heads/main).
+- backend/src/tools/types.ts, backend/src/tools/registry.ts, backend/src/index.ts patched to wire gh_create_repo handler and construct ghClient at boot. github_client_ready log fires.
+- Commit c0559e1 feat(github): wire gh_create_repo handler. tsc clean. Cloud Build 6ee646fb SUCCESS. Revision idso-app-generator-v2-backend-dev-00015-xct deployed.
+
+### Seed repo
+- Created IDS-Central/idso-app-template-v2 (private) as a duplicate of v1 with added Cloud Run deploy glue (Dockerfile, cloudbuild.yaml, .dockerignore, updated README.md). This is the seed source for all generated apps going forward. Generator repo itself is NOT a seed - only the thin template is.
+
+### GitHub App credentials (already provisioned in Secret Manager)
+- github-app-id = 3469712
+- github-app-client-id = Iv231iENpmHDxcNIoxsY
+- github-app-client-secret (stored)
+- github-app-private-key (stored, PEM)
+- Installation id = **126241513** on IDS-Central org (repo selection: all)
+- Permissions: administration:write, contents:write, pull_requests:write, metadata:read, members:read
+- App slug: idso-app-generator-v2
+
+### Smoke test (VERIFIED end-to-end)
+- Session e37e07dc-071a-41e9-8719-a8c0e67070ef, tool_use_id toolu_01H3hUPSB35kSCRrQUKGEmQV
+- Turn -> Anthropic picked gh_create_repo(app_name=smoke-test-gh-2) -> awaiting_approval
+- Approve (with correct tool_use_id) -> status: completed
+- Repo created: IDS-Central/idso-app-smoke-test-gh-2 with 20 seed files (Dockerfile, cloudbuild.yaml, prisma/, next.config.ts, CLAUDE.md, etc.), initial commit 156be4e52cf2024ffde53543771bef8f599d6157 on main
+- Cleaned up: DELETE /repos/IDS-Central/idso-app-smoke-test-gh-2 via installation token -> 204
+
+### Smoke-test recipe (CORRECTED - previous recipe in this file had wrong paths)
+- POST /v1/chat/sessions (plural sessions, NOT /v1/sessions) to create session
+- POST /v1/chat/:sessionId/turn to send message (NOT /v1/chat/sessions/:sessionId/turn)
+- POST /v1/chat/:sessionId/approve body is {"tool_use_id":"...","decision":"approved"} (snake_case)
+- Required headers: Authorization: Bearer <gcloud identity token> AND x-dev-auth-bypass: 1 (gated on ALLOW_DEV_AUTH_BYPASS=1)
+- Extract tool_use_id from turn response programmatically. Never type it manually - characters H/R, O/0, l/1 look identical in terminal fonts. Use: TOOL_USE_ID=$(python3 -c "import json;print(json.load(open(\"/tmp/turn1.json\"))[\"toolUseId\"])")
+
+### Gotcha: tool_use_id eyeball error
+The Anthropic tool_use_id (e.g. toolu_01H3hUPSB35k...) contains characters that are easy to misread in terminals. Always extract programmatically. This caused an hour of debugging when I typed 01R3h instead of 01H3h - getLatestApproval correctly returned null because no approval row existed for the wrong id. NOT a code regression.
+
+### Cleanup
+- Deleted test repo IDS-Central/idso-app-smoke-test-gh-2 via installation token (DELETE /repos/... -> 204)
+
+### Status of 2b parts
+- [x] 2b part 1/4 - iam_create_sa (validated 2026-04-23 AM)
+- [x] 2b part 2/4 - gh_create_repo (validated 2026-04-23 PM) <- this entry
+- [ ] 2b part 3/4 - cloudbuild_create_trigger (next)
+- [ ] 2b part 4/4 - cloudrun_deploy
