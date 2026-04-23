@@ -86,7 +86,7 @@ async function main(): Promise<void> {
   app.log.info({ datasets: Object.keys(catalog.datasets).length, tables: tableCount, generated_at: catalog.generatedAt }, 'catalog_loaded');
 
   const devBypassEmail = (process.env.AUTH_DEV_BYPASS_EMAIL ?? '').trim();
-  const devBypass = (process.env.NODE_ENV !== 'production' && devBypassEmail)
+  const devBypass = (process.env.ALLOW_DEV_AUTH_BYPASS === '1' && devBypassEmail)
     ? { email: devBypassEmail }
     : null;
   if (devBypass) {
