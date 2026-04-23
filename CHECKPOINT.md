@@ -3,7 +3,7 @@
 > This file is the single source of truth for deployment state. Update it every
 > time the deployed surface changes (new image, service rename, new secret, etc.).
 
-## Status:  Backend Phase 2 complete  ready to begin Phase 3 (frontend)
+## Status:  Backend Phase 2 complete + CI/CD trigger live  ready to begin Phase 3 (frontend)
 
 ## Project
 - GCP project display name: `central-workspace`
@@ -70,7 +70,7 @@ container  only the literal lowercase `/healthz` is intercepted.
     --substitutions=_IMAGE_TAG=$(git rev-parse --short HEAD) \
     backend
   ```
-- **No GitHub trigger connected yet**  decision pending in Phase 3.
+- **GitHub trigger live**: `idso-app-generator-v2-backend-dev` (us-central1) on push to main with filter `backend/**`. Uses SA `idso-app-generator-v2@`. Substitution `_IMAGE_TAG=$SHORT_SHA`. First successful build: commit 3be4c43 (2026-04-23), revision `idso-app-generator-v2-backend-dev-00002-9vp`.
 
 ## Cloud Run redeploy (minimal  reuses existing env/secret bindings)
 ```
