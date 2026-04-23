@@ -14,7 +14,7 @@ steps:
       - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE_NAME}:${_IMAGE_TAG}
       - -t
       - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE_NAME}:latest
-      - .
+      - backend
 
   - name: gcr.io/cloud-builders/docker
     id: push-tag
