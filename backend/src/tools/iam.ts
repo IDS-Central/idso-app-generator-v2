@@ -3,10 +3,14 @@
  *
  * Implements `iam_create_sa`: creates a per-app runtime service account
  * named `idso-<app_name>-runtime@<project>.iam.gserviceaccount.com` and
- * grants it EXACTLY three project-level roles:
+ * grants it EXACTLY five project-level roles:
  *   - roles/bigquery.dataViewer
  *   - roles/bigquery.jobUser
  *   - roles/logging.logWriter (required for Cloud Build trigger execution)
+ *  - roles/cloudbuild.builds.builder (required so the SA can actually
+ *    run the build the trigger fires)
+ *  - roles/run.developer (required so the build can deploy to Cloud Run
+ *    in the same step)
  *
 * No other roles are ever attached by this handler. If either role is
  * already granted (or the SA already exists), the operation is idempotent
@@ -88,6 +92,16 @@ const RUNTIME_ROLES = [
   // Cloud Build trigger (builds must be able to write their own logs).
   // Without it Cloud Build refuses to accept the SA at trigger-create time.
   'roles/logging.logWriter',
+  // cloudbuild.builds.builder is required for the SA to actually execute
+  // a Cloud Build job (create build, push image to Artifact Registry,
+  // read source from the connected git repo, etc.). Without it Cloud Build
+  // returns 403 PERMISSION_DENIED at trigger-create time because it cannot
+  // verify the trigger SA can run a build.
+  'roles/cloudbuild.builds.builder',
+  // run.developer lets the same trigger deploy the freshly built image to
+  // Cloud Run as part of the same build (used by cloudbuild_create_trigger
+  // + cloudrun_deploy in part 2b/4).
+  'roles/run.developer',
 ] as const;
 
 type IamCreateSaInput = { app_name: string };
