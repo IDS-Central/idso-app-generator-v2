@@ -122,14 +122,71 @@ export async function runAgentLoop(deps: LoopDeps, sessionId: string): Promise<L
     iterations += 1;
 
     // Re-hydrate full message history from BQ each turn.
-    const turns = await deps.store.getTurns(sessionId);
+    let turns = await deps.store.getTurns(sessionId);
+
+    // Resume bug fix: before calling Anthropic, dispatch any tool_call turn
+    // that has no matching tool_result yet. This handles the approval-resume
+    // case (/approve persisted an 'approved' approval row, but the tool
+    // hasn't actually run yet, so the assistant tool_use block has no
+    // tool_result to pair with and Anthropic would reject the messages[]).
+    const resultedToolUseIds = new Set(
+      turns
+        .filter((t) => t.role === 'tool_result' && t.tool_use_id)
+        .map((t) => t.tool_use_id as string),
+    );
+    const pendingToolCalls = turns.filter(
+      (t) => t.role === 'tool_call' && t.tool_use_id && !resultedToolUseIds.has(t.tool_use_id),
+    );
+    for (const pc of pendingToolCalls) {
+      const c = pc.content as { id: string; name: string; input: unknown };
+      const toolName = pc.tool_name ?? c.name;
+      const toolUseId = pc.tool_use_id as string;
+      if (isWriteTool(toolName)) {
+        const approvalRow = await deps.store.getLatestApproval(sessionId, toolUseId);
+        const approvalState = approvalRow?.approval_state ?? null;
+        if (approvalState !== 'approved') {
+          log.info(
+            { iter: iterations, tool: toolName, tool_use_id: toolUseId, approval_state: approvalState ?? 'none' },
+            'agent_loop_awaiting_approval_resume',
+          );
+          return {
+            status: 'awaiting_approval',
+            toolUseId,
+            toolName,
+            toolInput: c.input,
+            iterations,
+          };
+        }
+      }
+      const result = await dispatch(toolName, c.input, deps.toolDeps);
+      await deps.store.appendTurn({
+        session_id: sessionId,
+        role: 'tool_result',
+        content: {
+          tool_use_id: toolUseId,
+          output: result,
+          is_error: !result.ok,
+        },
+        tool_name: toolName,
+        tool_use_id: toolUseId,
+      });
+      log.info(
+        { iter: iterations, tool: toolName, tool_use_id: toolUseId, ok: result.ok },
+        'agent_loop_resume_tool_dispatched',
+      );
+    }
+    if (pendingToolCalls.length > 0) {
+      // Re-hydrate so messages[] includes the fresh tool_result turns.
+      turns = await deps.store.getTurns(sessionId);
+    }
+
     const messages = turnsToMessages(turns);
 
     if (messages.length === 0) {
       return { status: 'error', error: 'no_user_message', iterations };
     }
 
-    log.info({ iter: iterations, msg_count: messages.length }, 'agent_loop_iter_begin');
+    log.info({ iter: iterations, msg_count: messages.length, resumed_tools: pendingToolCalls.length }, 'agent_loop_iter_begin');
 
     let response;
     try {
