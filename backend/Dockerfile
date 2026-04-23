@@ -12,6 +12,9 @@ COPY tsconfig.json ./
 COPY src ./src
 RUN npm run build
 
+# Ship runtime data assets (catalog, etc.) next to compiled JS
+RUN mkdir -p dist/tools && cp src/tools/data-catalog.json dist/tools/data-catalog.json
+
 # Prune dev deps for the runtime image
 RUN npm prune --omit=dev
 
