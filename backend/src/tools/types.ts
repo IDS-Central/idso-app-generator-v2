@@ -15,6 +15,7 @@
 import type { Logger } from 'pino';
 import type { BigQuery } from '@google-cloud/bigquery';
 import type { iam_v1, cloudresourcemanager_v1 } from 'googleapis';
+import type { GithubClient } from './github.js';
 
 export type ToolHandlerDeps = {
   /** pino child logger scoped to the current session+turn. */
@@ -25,6 +26,8 @@ export type ToolHandlerDeps = {
   catalog: Catalog;
   /** IAM client for write tools (undefined when tool not used). */
   iam?: IamClient;
+  /** GitHub App client for write tools (undefined when tool not used). */
+  gh?: GithubClient;
 };
 
 /** IAM + Cloud Resource Manager clients bundled with the target projectId. */

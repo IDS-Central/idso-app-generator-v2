@@ -36,6 +36,7 @@ import { bootstrapSessionStore } from './session/bootstrap.js';
 import { SessionStore } from './session/store.js';
 import { loadCatalog } from './tools/bq.js';
 import { buildIamClient } from './tools/iam.js';
+import { buildGithubClient } from './tools/github.js';
 
 async function main(): Promise<void> {
     const config = loadConfig();
@@ -91,6 +92,25 @@ async function main(): Promise<void> {
   const iamClient = await buildIamClient(config.projectId);
   app.log.info({ project_id: iamClient.projectId }, 'iam_client_ready');
 
+// GitHub App client for write tools (gh_create_repo, etc.).
+// Config requires appId + installationId + clientId as env vars; private key
+// comes from Secret Manager via loadSecrets().
+const ghClient = buildGithubClient({
+  appId: config.githubAppId,
+  installationId: config.githubAppInstallationId,
+  privateKeyPem: secrets.githubAppPrivateKey,
+  org: 'IDS-Central',
+  seedRepo: 'idso-app-template-v2',
+});
+app.log.info(
+  {
+    gh_app_id: config.githubAppId,
+    gh_installation_id: config.githubAppInstallationId,
+    seed_repo: 'IDS-Central/idso-app-template-v2',
+  },
+  'github_client_ready',
+);
+
   const devBypassEmail = (process.env.AUTH_DEV_BYPASS_EMAIL ?? '').trim();
   const devBypass = (process.env.ALLOW_DEV_AUTH_BYPASS === '1' && devBypassEmail)
     ? { email: devBypassEmail }
@@ -103,7 +123,7 @@ async function main(): Promise<void> {
     auth,
     anthropic: anthropic.client,
     store: sessionStore,
-    toolDeps: { bq, catalog, logger, iam: iamClient },
+    toolDeps: { bq, catalog, logger, iam: iamClient, gh: ghClient },
     logger,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     devBypass,

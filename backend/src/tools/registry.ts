@@ -3,7 +3,7 @@
  *
  * Write tools land progressively in Commit 2b. As of this revision:
  *   - iam_create_sa      -> wired (see ./iam.ts)
- *   - gh_create_repo     -> not yet implemented (returns 'not_implemented')
+ *   - gh_create_repo           -> wired (see ./github.ts)
  *   - cloudbuild_create_trigger -> not yet implemented
  *   - cloudrun_deploy    -> not yet implemented
  * The loop gate pauses on write tools for user approval before dispatch,
@@ -17,6 +17,7 @@ import { getTool, isWriteTool } from './schema.js';
 import { bqCatalogSearch, bqDescribeTable, bqDryRun } from './bq.js';
 import { askUser } from './ask.js';
 import { iamCreateSa } from './iam.js';
+import { ghCreateRepo } from './github.js';
 
 const HANDLERS: Record<string, ToolHandler<any, any>> = {
   bq_catalog_search: bqCatalogSearch,
@@ -24,6 +25,7 @@ const HANDLERS: Record<string, ToolHandler<any, any>> = {
   bq_dry_run: bqDryRun,
   ask_user: askUser,
   iam_create_sa: iamCreateSa,
+  gh_create_repo: ghCreateRepo,
 };
 
 export async function dispatch(
