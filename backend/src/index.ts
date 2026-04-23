@@ -85,6 +85,14 @@ async function main(): Promise<void> {
   const tableCount = Object.values(catalog.datasets).reduce((n, d) => n + Object.keys(d.tables).length, 0);
   app.log.info({ datasets: Object.keys(catalog.datasets).length, tables: tableCount, generated_at: catalog.generatedAt }, 'catalog_loaded');
 
+  const devBypassEmail = (process.env.AUTH_DEV_BYPASS_EMAIL ?? '').trim();
+  const devBypass = (process.env.NODE_ENV !== 'production' && devBypassEmail)
+    ? { email: devBypassEmail }
+    : null;
+  if (devBypass) {
+    app.log.warn({ email: devBypass.email }, 'auth_dev_bypass_enabled');
+  }
+
   registerChatRoutes(app, {
     auth,
     anthropic: anthropic.client,
@@ -92,6 +100,7 @@ async function main(): Promise<void> {
     toolDeps: { bq, catalog, logger },
     logger,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
+    devBypass,
   });
   const address = await app.listen({ host: '0.0.0.0', port: config.port });
     logger.info({ address }, 'boot_listening');

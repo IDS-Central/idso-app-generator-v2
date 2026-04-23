@@ -28,6 +28,12 @@ export interface ChatRouteDeps {
   toolDeps: ToolHandlerDeps;
   logger: Logger;
   systemPrompt: string;
+  /**
+   * DEV-ONLY auth bypass.  When populated the routes will accept a request
+   * carrying header `x-dev-auth-bypass: 1` as the configured email, skipping
+   * the real Google ID token check.  Must remain null in production.
+   */
+  devBypass?: { email: string } | null;
 }
 
 interface TurnBody {
@@ -41,12 +47,30 @@ interface ApproveBody {
 }
 
 export function registerChatRoutes(app: FastifyInstance, deps: ChatRouteDeps): void {
+  /**
+   * preHandler used by every chat route.  In production this delegates
+   * straight to deps.auth.requireIdsoUser().  In dev, when deps.devBypass is
+   * set AND the request carries header `x-dev-auth-bypass: 1`, we synthesise
+   * a user from the bypass email and log a WARN on every hit so it cannot
+   * slip silently into production.
+   */
+  const requireUser = async (req: FastifyRequest, rep: FastifyReply): Promise<void> => {
+    if (deps.devBypass && req.headers['x-dev-auth-bypass'] === '1') {
+      const email = deps.devBypass.email;
+      req.user = { email, name: 'dev-bypass', picture: undefined };
+      req.log = req.log.child({ authenticated_email: email, auth_mode: 'dev_bypass' });
+      req.log.warn({ email, route: req.url }, 'auth_dev_bypass_used');
+      return;
+    }
+    return deps.auth.requireIdsoUser(req, rep);
+  };
+
   const log = deps.logger.child({ component: 'chat_routes' });
 
   // -- POST /v1/chat/sessions ---------------------------------------------
   app.post(
     '/v1/chat/sessions',
-    { preHandler: (req: FastifyRequest, rep: FastifyReply) => deps.auth.requireIdsoUser(req, rep) },
+    { preHandler: requireUser },
     async (req: FastifyRequest, rep: FastifyReply) => {
       const user = req.user;
       if (!user) {
@@ -61,7 +85,7 @@ export function registerChatRoutes(app: FastifyInstance, deps: ChatRouteDeps): v
   // -- POST /v1/chat/:sessionId/turn --------------------------------------
   app.post<{ Params: { sessionId: string }; Body: TurnBody }>(
     '/v1/chat/:sessionId/turn',
-    { preHandler: (req: FastifyRequest, rep: FastifyReply) => deps.auth.requireIdsoUser(req, rep) },
+    { preHandler: requireUser },
     async (req, rep) => {
       const user = req.user;
       if (!user) {
@@ -105,7 +129,7 @@ export function registerChatRoutes(app: FastifyInstance, deps: ChatRouteDeps): v
   // -- POST /v1/chat/:sessionId/approve -----------------------------------
   app.post<{ Params: { sessionId: string }; Body: ApproveBody }>(
     '/v1/chat/:sessionId/approve',
-    { preHandler: (req: FastifyRequest, rep: FastifyReply) => deps.auth.requireIdsoUser(req, rep) },
+    { preHandler: requireUser },
     async (req, rep) => {
       const user = req.user;
       if (!user) {
@@ -155,7 +179,7 @@ export function registerChatRoutes(app: FastifyInstance, deps: ChatRouteDeps): v
   // -- GET /v1/chat/:sessionId/stream (SSE replay + heartbeat) ------------
   app.get<{ Params: { sessionId: string } }>(
     '/v1/chat/:sessionId/stream',
-    { preHandler: (req: FastifyRequest, rep: FastifyReply) => deps.auth.requireIdsoUser(req, rep) },
+    { preHandler: requireUser },
     async (req, rep) => {
       const user = req.user;
       if (!user) {
