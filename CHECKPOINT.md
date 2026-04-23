@@ -418,3 +418,87 @@ The Anthropic tool_use_id (e.g. toolu_01H3hUPSB35k...) contains characters that 
 - [x] 2b part 2/4 - gh_create_repo (validated 2026-04-23 PM) <- this entry
 - [ ] 2b part 3/4 - cloudbuild_create_trigger (next)
 - [ ] 2b part 4/4 - cloudrun_deploy
+
+## 2026-04-23 (PM late) Commit 2b part 3/4 (cloudbuild_create_trigger) -- shipped, smoke test FAILED on infra IAM
+
+### What's actually on main now (HEAD = a7dd7e3)
+
+Commits since the previous checkpoint entry:
+
+- 9b2adfc7 -- (intentionally inferred from history; see git log) -- between PM checkpoint and 2b part 3
+- d7b6c9b feat(cloudbuild): wire cloudbuild_create_trigger handler (Commit 2b part 3/4)
+- a7dd7e3 feat(iam): add roles/logging.logWriter to runtime SA role set
+
+### Code that landed for 2b part 3
+
+- backend/src/tools/cloudbuild.ts (~210 LOC). Creates a DeveloperConnect gitRepositoryLink under the project-level connection `connection-bu2d4s3` (us-central1, IDS-Central org), then creates a Cloud Build trigger that watches `main` on the linked repo and runs `cloudbuild.yaml` with `_ENV/_APP_NAME/_REGION/_SERVICE_ACCOUNT` substitutions. Idempotent on 409 for both calls. Uses GoogleAuth ADC so the backend's attached SA (`idso-app-generator-v2@`) is the caller.
+- backend/src/tools/registry.ts, types.ts, index.ts wired to dispatch `cloudbuild_create_trigger`.
+- iam.ts: RUNTIME_ROLES extended to add `roles/logging.logWriter` (now THREE roles: bigquery.dataViewer, bigquery.jobUser, logging.logWriter). The commit message documents that this was discovered during the cloudbuild trigger smoke test -- Cloud Build refuses to accept the runtime SA as a trigger identity without logWriter.
+
+### Deployed state verified
+
+- Cloud Run revision `idso-app-generator-v2-backend-dev-00017-46w` is serving 100% traffic.
+- Image: `us-central1-docker.pkg.dev/reconciliation-dashboard/idso-apps/app-generator-v2-backend:a7dd7e3`.
+- Env vars `ALLOW_DEV_AUTH_BYPASS=1` and `AUTH_DEV_BYPASS_EMAIL=nghia@independencedso.com` confirmed live on the service.
+
+### Smoke test 2026-04-23 (post-resume session) -- BLOCKED on infra IAM
+
+Session: `83c6a7f0-ab20-46a0-a425-25f3b7d59627`. Three-phase chained smoke test:
+
+| Step | Tool | tool_use_id | Result |
+| --- | --- | --- | --- |
+| 1 | iam_create_sa(app_name=smoke-cb-1) | toolu_014tKnc2Y2GSW9svBt8ji7is | OK -- SA `idso-smoke-cb-1-runtime@reconciliation-dashboard.iam.gserviceaccount.com` created with all three runtime roles incl. logWriter |
+| 2 | gh_create_repo(app_name=smoke-cb-1) | toolu_01GcFTDB7mv9N5Tu3YAfQj3u | OK -- repo `IDS-Central/idso-app-smoke-cb-1` created, seeded from `idso-app-template-v2`, initial commit `b4a8c916...` on main |
+| 3 | cloudbuild_create_trigger(app=smoke-cb-1, env=dev, github_repo=IDS-Central/idso-app-smoke-cb-1) | toolu_015SScMEk4PYw7Ee5seLoWsu | **FAILED** -- handler returned `cloudbuild_create_trigger_failed` |
+
+Backend log line for the failure:
+
+```
+cloudbuild trigger create failed: HTTP 403 PERMISSION_DENIED insufficient permissions
+from service account projects/reconciliation-dashboard/serviceAccounts/
+  idso-smoke-cb-1-runtime@reconciliation-dashboard.iam.gserviceaccount.com
+to project 142054839786
+```
+
+The `gitRepositoryLink` create succeeded (logged `gitRepositoryLink_already_exists` on retry). The failure is **specifically** at the Cloud Build trigger create step, where Cloud Build is rejecting the runtime SA as the trigger's identity.
+
+### Diagnosis (not yet fixed)
+
+`logWriter` was a necessary but **insufficient** condition. To be a Cloud Build trigger's `serviceAccount`, the runtime SA also needs project-level Cloud Build builder rights (typically `roles/cloudbuild.builds.builder`, or a narrower equivalent that includes `cloudbuild.builds.create` + `artifactregistry.writer` + `run.developer` if we deploy from the same trigger). Additionally, the **caller** (backend SA `idso-app-generator-v2@`) almost certainly needs `roles/iam.serviceAccountUser` on the freshly created runtime SA so it can attach it as the trigger identity.
+
+This is a design decision, not a code bug:
+- **Option A (broad):** add `roles/cloudbuild.builds.builder` to RUNTIME_ROLES. Easiest, but expands the runtime SA's blast radius beyond the "BQ read + write own logs" minimum we explicitly chose in CLAUDE.md.
+- **Option B (split):** introduce a separate per-app build SA (`idso-<app>-build@`) with cloudbuild.builds.builder, used only as the trigger identity. Runtime SA stays narrow. Requires a new tool (or extending iam_create_sa to also create a build SA) and changing cloudbuild.ts to bind the build SA, not the runtime SA.
+- **Option C (project-level shared build SA):** one shared `idso-shared-build@` SA used by every generated app's trigger. Smallest IaC churn. Loses per-app least-privilege at build time.
+
+Followups also needed regardless of the option chosen:
+- Backend SA needs `roles/iam.serviceAccountUser` on whichever SA ends up being the trigger identity, OR project-level `iam.serviceAccountUser` (broader).
+- The `connection-bu2d4s3` DeveloperConnect connection must remain authorised against the IDS-Central org (one-time, already done).
+
+### Test artifact cleanup
+
+- Runtime SA `idso-smoke-cb-1-runtime@` deleted via `gcloud iam service-accounts delete`. Project IAM bindings could not be removed non-interactively (the bindings are conditioned and gcloud refused without `--all` / `--condition=None`); these become orphaned member entries once the SA is gone and are functionally harmless.
+- DeveloperConnect gitRepositoryLink `IDS-Central-idso-app-smoke-cb-1` -- DELETE LRO kicked off (operation `operation-1776983385379-650282f7513e0-...`).
+- GitHub repo `IDS-Central/idso-app-smoke-cb-1` -- **NOT deleted**. The Cloud Shell `gh` CLI lacks the `delete_repo` scope. Either delete manually via the GitHub UI, or in a future session re-run the App-token-based DELETE pattern used in the gh_create_repo smoke test.
+
+### Status of 2b parts (corrected)
+
+- [x] 2b part 1/4 -- iam_create_sa (validated 2026-04-23 AM; role set later expanded to 3 roles)
+- [x] 2b part 2/4 -- gh_create_repo (validated 2026-04-23 PM)
+- [~] 2b part 3/4 -- cloudbuild_create_trigger (CODE shipped a7dd7e3 line, BUT smoke test BLOCKED by IAM infra; design call needed -- see options A/B/C above)
+- [ ] 2b part 4/4 -- cloudrun_deploy
+
+### Open items to resolve before 2b part 4
+
+- Pick option A / B / C for build identity and apply matching IAM on `reconciliation-dashboard` so cloudbuild_create_trigger can complete end-to-end.
+- Re-run the three-step chained smoke test against a fresh app name (e.g. `smoke-cb-2`) and record `trigger_id` + `resourceName` from the handler response when it succeeds.
+- Manually delete the `IDS-Central/idso-app-smoke-cb-1` repo (or scripted via App token) so the org doesn't accumulate dead test repos.
+- Decide whether to widen `gh` CLI scope in Cloud Shell (`gh auth refresh -h github.com -s delete_repo`) so future smoke tests can self-clean.
+
+### Other deferred follow-ups still tracked
+
+- `request.headers.authorisations` typo in backend/src/auth.ts.
+- Auth-bypass env vars not yet in `cloudbuild.yaml` (still set imperatively).
+- 10 npm vulnerabilities from googleapis install.
+- `lives.ts` FS/git anomaly.
+- No `docs/SMOKE-TEST.md` yet -- the canonical recipe lives in the gh_create_repo checkpoint section above plus the procedure exercised in this session.
