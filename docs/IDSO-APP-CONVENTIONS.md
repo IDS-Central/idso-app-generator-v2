@@ -272,3 +272,42 @@ This doc merges `CLAUDE-standards.md` from v1, the rules from the v2 project bri
                                                                                                                                                                                                         - - Never use string interpolation in generated SQL.
                                                                                                                                                                                                           - - Never deploy a browser-facing Cloud Run service without confirming auth middleware returns 401 on a protected route.
                                                                                                                                                                                                             - 
+
+---
+
+## Data warehouse access rules (added 2026-04-23)
+
+IDSO operates a central BigQuery data warehouse in project `reconciliation-dashboard`. The generator uses this as its primary source of truth for generated-app data needs.
+
+### Catalog
+
+- `docs/data-catalog.json` is the machine-readable inventory of datasets, tables, columns, and types in `reconciliation-dashboard`. The generator MUST load this at plan time and reference it when proposing any app that reads IDSO data.
+- `docs/DATA-CATALOG.md` is the human-readable version of the same data.
+- Regenerate both with `scripts/refresh-catalog.sh`. Do not hand-edit.
+- Claude MUST NOT hallucinate table or column names. If the user asks for data that the catalog does not contain, the generator must say so and ask the user to clarify or point to the right dataset, rather than inventing tables.
+
+### Per-app service account
+
+Every generated app that needs to read warehouse data gets its own dedicated service account with the minimum required roles:
+
+- `roles/bigquery.dataViewer` on `reconciliation-dashboard` (read rows)
+- `roles/bigquery.jobUser` on `reconciliation-dashboard` (run queries, billed to reconciliation-dashboard)
+
+The generator MUST create this SA during provisioning (tool: `iam_create_sa`) and MUST NOT share or reuse SAs across generated apps. Naming: `idso-{app-name}-runtime@reconciliation-dashboard.iam.gserviceaccount.com`.
+
+Generated apps do NOT get `bigquery.admin`, `bigquery.dataEditor`, or any write role on the warehouse. If a generated app needs its own writeable tables, it creates them in its own dataset (named `idso_{app_name}`) owned by the app's SA, not in the shared warehouse datasets.
+
+### Audience
+
+All generated apps may assume the authenticated user is a corporate-level IDSO staffer and is authorised to see all data in the warehouse. There is no row-level security, no practice-level scoping, and no PII redaction at the app layer. Auth is still required (OAuth + `hd=independencedso.com`), but once a user is in, they see everything the app is designed to show.
+
+### Ambiguous business metrics
+
+Many IDSO metrics ("net production", "collections rate", "production per op hour", "adjusted EBITDA", etc.) have multiple valid definitions depending on context. The generator MUST NOT assume a definition. When the user's request contains a business metric that could be computed more than one way, Claude MUST:
+
+1. Detect the ambiguity during planning (before emitting `plan_proposed`).
+2. Ask the user to state the exact formula, in plain English or SQL.
+3. Capture the user's answer in the generated repo as a commented SQL view (e.g., `sql/metrics/net_production.sql`) with a header comment naming the user who defined it and the date.
+4. Reference that view from the app code  never recompute the metric inline in a report.
+
+This makes every metric auditable and re-editable by the user later.

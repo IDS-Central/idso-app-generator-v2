@@ -3,7 +3,7 @@
 > This file is the single source of truth for deployment state. Update it every
 > time the deployed surface changes (new image, service rename, new secret, etc.).
 
-## Status:  Backend Phase 2 complete + CI/CD trigger live  ready to begin Phase 3 (frontend)
+## Status: Backend scaffold + CI/CD live; data catalog snapshot committed. Phase 2 scope expanded to include BQ catalog tools + per-app runtime SA. Ready to begin Phase 2 engine build (tool dispatcher + loop + SSE).
 
 ## Project
 - GCP project display name: `central-workspace`
@@ -89,3 +89,21 @@ gcloud run deploy idso-app-generator-v2-backend-dev \
 - Lib: auth.ts, session.ts, backend.ts (typed SSE client), middleware.ts
 - Auth: `google-auth-library` server-side, `hd=independencedso.com`,
   `idso_session` AES-256-GCM cookie
+
+## Data catalog (Phase 1.5, 2026-04-23)
+
+Snapshot of the BigQuery warehouse at `reconciliation-dashboard` is now part of the repo:
+
+- `docs/DATA-CATALOG.md` - human-readable inventory.
+- `docs/data-catalog.json` - machine-readable, will be loaded by the generator at plan time.
+- `scripts/build-catalog.js` - converts raw `bq show --format=prettyjson` files into the catalog artifacts.
+- `scripts/refresh-catalog.sh` - end-to-end: `bq ls` + `bq show` + builder. Re-run whenever the warehouse schema changes.
+
+Initial snapshot: 5 datasets (`ADP_system`, `Dentira_system`, `PMS_system`, `Sage_system_v2`, `dim_mappings`), 80 tables, 764 columns. Built at commit `d0a7b12`.
+
+New rules added to `docs/IDSO-APP-CONVENTIONS.md`:
+- Every generated app gets its own runtime SA with `roles/bigquery.dataViewer` + `roles/bigquery.jobUser` only, scoped to `reconciliation-dashboard`.
+- Authenticated users are assumed to be corporate-level staff and see all data (no RLS, no practice-level scoping).
+- Claude must ask the user for an explicit formula whenever a business metric is ambiguous (e.g., "net production"), and must capture the answer as a commented SQL view in the generated repo.
+
+These rules change Phase 2 scope: the tool list must include `bq_catalog_search` / `bq_describe_table` so Claude can ground plans in real tables, and `iam_create_sa` must provision per-app runtime SAs with the warehouse read roles.
