@@ -43,5 +43,5 @@ export function createAnthropicClient(deps: AnthropicDeps) {
       return { model: DEFAULT_MODEL, ok: true };
   }
 
-  return { ping };
+  return { ping, client };
 }

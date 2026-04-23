@@ -29,6 +29,10 @@ import { createAnthropicClient } from './anthropic.js';
 import { registerLivezRoute } from './routes/livez.js';
 import { registerMeRoute } from './routes/me.js';
 
+import { BigQuery } from '@google-cloud/bigquery';
+import { bootstrapSessionStore } from './session/bootstrap.js';
+import { SessionStore } from './session/store.js';
+
 async function main(): Promise<void> {
     const config = loadConfig();
     const logger = createRootLogger(config.logLevel);
@@ -46,6 +50,17 @@ async function main(): Promise<void> {
   const secrets = await loadSecrets(config);
     logger.info({ secrets_loaded: 5 }, 'boot_secrets_loaded');
 
+
+  const bq = new BigQuery({ projectId: config.projectId });
+  await bootstrapSessionStore({ bq, logger });
+  const sessionStore = new SessionStore({
+    bq,
+    logger,
+    project: config.projectId,
+    dataset: config.sessionDataset,
+  });
+  // Force a reference so unused-var lint doesn't fire while the agent loop wiring lands in commit 5.
+  void sessionStore;
   const anthropic = createAnthropicClient({
         apiKey: secrets.anthropicApiKey,
         logger: logger as any,

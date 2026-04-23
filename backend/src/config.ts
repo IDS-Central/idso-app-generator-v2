@@ -27,6 +27,7 @@ export interface Config {
     region: string;
     port: number;
     logLevel: string;
+  sessionDataset: string;
 
   /** The Google Workspace domain required on every ID token. */
   allowedHd: string;
@@ -69,6 +70,7 @@ export function loadConfig(): Config {
           region: optional('REGION', 'us-central1'),
           port: Number(optional('PORT', '8080')),
           logLevel: optional('LOG_LEVEL', 'info'),
+    sessionDataset: optional('SESSION_DATASET', 'idso_app_generator'),
           allowedHd: optional('ALLOWED_HD', 'independencedso.com'),
 
           googleOauthClientIdSecret: optional('GOOGLE_OAUTH_CLIENT_ID_SECRET', 'oauth-client-id'),
