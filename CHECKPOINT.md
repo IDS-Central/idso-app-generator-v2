@@ -60,7 +60,7 @@ container  only the literal lowercase `/healthz` is intercepted.
 ## Git state
 - Local commit on `main`: `dd46005`  fix(backend): rename /healthz to /livez
   (GFE intercepts /healthz); cloudbuild logging + TS logger casts
-- **Not yet pushed to GitHub.**
+- **Pushed to origin/main** (commits dd46005 + ddf8f36) on 2026-04-22 via gh auth (account `ids-nghia-dang`).
 
 ## Cloud Build
 - Config: `backend/cloudbuild.yaml`
