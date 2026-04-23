@@ -3,11 +3,12 @@
  *
  * Implements `iam_create_sa`: creates a per-app runtime service account
  * named `idso-<app_name>-runtime@<project>.iam.gserviceaccount.com` and
- * grants it EXACTLY two project-level roles:
+ * grants it EXACTLY three project-level roles:
  *   - roles/bigquery.dataViewer
  *   - roles/bigquery.jobUser
+ *   - roles/logging.logWriter (required for Cloud Build trigger execution)
  *
- * No other roles are ever attached by this handler. If either role is
+* No other roles are ever attached by this handler. If either role is
  * already granted (or the SA already exists), the operation is idempotent
  * and returns ok.
  */
@@ -83,6 +84,10 @@ const APP_NAME_RE = /^[a-z][a-z0-9-]{1,28}[a-z0-9]$/;
 const RUNTIME_ROLES = [
   'roles/bigquery.dataViewer',
   'roles/bigquery.jobUser',
+  // logWriter is required for the SA to be usable as the identity of a
+  // Cloud Build trigger (builds must be able to write their own logs).
+  // Without it Cloud Build refuses to accept the SA at trigger-create time.
+  'roles/logging.logWriter',
 ] as const;
 
 type IamCreateSaInput = { app_name: string };
