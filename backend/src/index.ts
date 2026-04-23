@@ -28,10 +28,13 @@ import { createAuth } from './auth.js';
 import { createAnthropicClient } from './anthropic.js';
 import { registerLivezRoute } from './routes/livez.js';
 import { registerMeRoute } from './routes/me.js';
+import { registerChatRoutes } from './routes/chat.js';
+import { DEFAULT_SYSTEM_PROMPT } from './agent/prompt.js';
 
 import { BigQuery } from '@google-cloud/bigquery';
 import { bootstrapSessionStore } from './session/bootstrap.js';
 import { SessionStore } from './session/store.js';
+import { loadCatalog } from './tools/bq.js';
 
 async function main(): Promise<void> {
     const config = loadConfig();
@@ -59,15 +62,10 @@ async function main(): Promise<void> {
     project: config.projectId,
     dataset: config.sessionDataset,
   });
-  // Force a reference so unused-var lint doesn't fire while the agent loop wiring lands in commit 5.
-  void sessionStore;
   const anthropic = createAnthropicClient({
         apiKey: secrets.anthropicApiKey,
         logger: logger as any,
   });
-    // Force a reference so the linter doesn't warn; real use comes in Phase 2.
-  void anthropic;
-
   const auth = createAuth({
         config,
         oauthClientId: secrets.oauthClientId,
@@ -83,6 +81,18 @@ async function main(): Promise<void> {
   registerLivezRoute(app);
     registerMeRoute(app, { auth });
 
+  const catalog = loadCatalog();
+  const tableCount = Object.values(catalog.datasets).reduce((n, d) => n + Object.keys(d.tables).length, 0);
+  app.log.info({ datasets: Object.keys(catalog.datasets).length, tables: tableCount, generated_at: catalog.generatedAt }, 'catalog_loaded');
+
+  registerChatRoutes(app, {
+    auth,
+    anthropic: anthropic.client,
+    store: sessionStore,
+    toolDeps: { bq, catalog, logger },
+    logger,
+    systemPrompt: DEFAULT_SYSTEM_PROMPT,
+  });
   const address = await app.listen({ host: '0.0.0.0', port: config.port });
     logger.info({ address }, 'boot_listening');
 }
