@@ -3,6 +3,7 @@ substitutions:
   _REPO: idso-apps
   _IMAGE_NAME: app-generator-v2-backend
   _IMAGE_TAG: latest
+  _SERVICE: idso-app-generator-v2-backend-dev
 
 steps:
   - name: gcr.io/cloud-builders/docker
@@ -26,6 +27,18 @@ steps:
     args:
       - push
       - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE_NAME}:latest
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: deploy
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE}
+      - --image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE_NAME}:${_IMAGE_TAG}
+      - --region=${_REGION}
+      - --platform=managed
+      - --quiet
 
 images:
   - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE_NAME}:${_IMAGE_TAG}
