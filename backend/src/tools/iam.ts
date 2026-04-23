@@ -102,6 +102,12 @@ const RUNTIME_ROLES = [
   // Cloud Run as part of the same build (used by cloudbuild_create_trigger
   // + cloudrun_deploy in part 2b/4).
   'roles/run.developer',
+  // developerconnect.readTokenAccessor is required so the SA can be used as
+  // the trigger identity for DeveloperConnect-backed Cloud Build triggers.
+  // Without it, triggers.create returns 403 PERMISSION_DENIED because Cloud
+  // Build validates that the trigger SA can read the GitHub token behind
+  // the gitRepositoryLink at trigger-create time.
+  'roles/developerconnect.readTokenAccessor',
 ] as const;
 
 type IamCreateSaInput = { app_name: string };
