@@ -142,3 +142,74 @@ Option A (the catalog-aware tool-use backend) is underway.  Three commits on mai
 
 - Two PMS_system tables (`BankPayerList_Normalised`, `BankTxn_Normalised`) lack descriptions in the catalog overlay. Everything else in the warehouse (78 of 80 tables) has dataset- and table-level descriptions.
 - The backend image is now ~3x the size it was after the BQ client was added; acceptable for dev, worth revisiting if cold starts regress.
+
+### Phase 2 commit 4 (2026-04-23): Anthropic tool-use loop + bootstrap on boot
+
+**Commit:** `b2b1cbb` `feat(backend): Anthropic tool-use loop with approval gating + bootstrap session store on boot`
+**Build:** `caa9f25e-1390-449d-b04f-a7bc4a0a74ce` SUCCESS
+**Revision:** `idso-app-generator-v2-backend-dev-00006-rcr` (deployed 2026-04-23T04:07:28Z)
+
+**What landed:**
+
+- `backend/src/agent/loop.ts` (new, 239 lines)
+  - `runAgentLoop({anthropic, logger, store, toolDeps, systemPrompt, model?}, sessionId): Promise<LoopResult>`
+  - Hydrates message history from `session_turns` each iteration  **stateless caller, all state in BQ**
+  - Read tools dispatched immediately via `dispatch(name, input, toolDeps)`
+  - Write tools require an `approved` row in `session_turns` (role=`approval`) keyed by `tool_use_id`; otherwise returns `{status: 'awaiting_approval', toolUseId, toolName, toolInput}` and pauses
+  - Returns `{status: 'completed', finalText}` when the model stops calling tools
+  - Hard ceiling `MAX_ITERATIONS=12` to prevent infinite spin
+  - Persists every step (`assistant`, `tool_call`, `tool_result`) via `SessionStore.appendTurn`
+
+- `backend/src/index.ts` boot sequence now:
+  1. `loadConfig()`
+  2. `createRootLogger()`
+  3. `loadSecrets()`
+  4. `new BigQuery({projectId})`
+  5. **`await bootstrapSessionStore({bq, logger})`**  creates dataset + tables idempotently
+  6. **`new SessionStore({bq, logger, project, dataset: config.sessionDataset})`**
+  7. `createAnthropicClient()` (now exposes `.client` alongside `.ping`)
+  8. `createAuth()`
+  9. Routes + `app.listen()`
+
+- `backend/src/anthropic.ts`: `createAnthropicClient` returns `{ ping, client }` so the loop can call `client.messages.create`.
+- `backend/src/config.ts`: new `Config.sessionDataset: string` field, env `SESSION_DATASET`, default `'idso_app_generator'`.
+
+**Runtime verification (revision 00006-rcr logs):**
+
+```
+boot_config_loaded
+boot_secrets_loaded
+session_store_ready          <-- bootstrap succeeded
+boot_listening
+Server listening at http://0.0.0.0:8080
+```
+
+**BQ verification:**
+
+```
+$ bq ls reconciliation-dashboard:idso_app_generator
+  tableId   Type    Time Partitioning            Clustered Fields
+  --------- ------- ---------------------------- --------------------------
+  sessions  TABLE   DAY (field: created_at)      user_email, session_id
+  turns     TABLE   DAY (field: created_at)      session_id, turn_number
+```
+
+**TypeScript fixes applied during commit 4 development:**
+
+- `dispatch()` is **positional** `(name, input, deps)`, not destructured
+- `getLatestApproval()` returns `TurnRow | null` (the row), not the approval state directly  extract via `row?.approval_state`
+- `Config` interface in `config.ts` had to be extended (not just the loader)  TS error TS2353
+- `ToolHandlerDeps` lives in `tools/types.ts`, not `tools/registry.ts`
+
+**Phase 2 commits remaining:**
+
+- Commit 5 of 6: SSE chat endpoint that exposes `runAgentLoop()` over `/v1/chat/:sessionId/stream` (GET) + `/v1/chat/:sessionId/turn` (POST) + `/v1/chat/:sessionId/approve` (POST)
+- Commit 2b (deferred): Write-tool handlers (IAM SA create, GitHub repo create, Cloud Build trigger create, Cloud Run deploy)
+- Commit 6 of 6: Final CHECKPOINT + PHASE-PLAN update + smoke-test recipe
+
+**Open items / known gaps:**
+
+- Backend SA already has BQ Admin (user confirmed 2026-04-23)  bootstrap works end-to-end
+- Loop currently uses a placeholder `systemPrompt` from caller; commit 5 will wire the real generator-aware prompt that references the catalog
+- 2 PMS_system tables (`BankPayerList_Normalised`, `BankTxn_Normalised`) still without descriptions in the catalog (intentional gap, see Phase 1.6)
+
