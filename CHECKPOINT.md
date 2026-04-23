@@ -3,7 +3,7 @@
 > This file is the single source of truth for deployment state. Update it every
 > time the deployed surface changes (new image, service rename, new secret, etc.).
 
-## Status: Backend scaffold + CI/CD live; data catalog snapshot committed. Phase 2 scope expanded to include BQ catalog tools + per-app runtime SA. Ready to begin Phase 2 engine build (tool dispatcher + loop + SSE).
+## Status: Backend scaffold + CI/CD live; data catalog committed with dataset+table descriptions overlay. Phase 2 engine build in progress: tool registry + all four read-tool handlers shipped and green in CI. Next: BQ-backed session store, then the Anthropic tool-use loop, then the SSE chat endpoint, then write-tool handlers.
 
 ## Project
 - GCP project display name: `central-workspace`
@@ -107,3 +107,38 @@ New rules added to `docs/IDSO-APP-CONVENTIONS.md`:
 - Claude must ask the user for an explicit formula whenever a business metric is ambiguous (e.g., "net production"), and must capture the answer as a commented SQL view in the generated repo.
 
 These rules change Phase 2 scope: the tool list must include `bq_catalog_search` / `bq_describe_table` so Claude can ground plans in real tables, and `iam_create_sa` must provision per-app runtime SAs with the warehouse read roles.
+
+
+## Phase 2 engine (2026-04-23)
+
+Option A (the catalog-aware tool-use backend) is underway.  Three commits on main so far, all green in Cloud Build:
+
+- `193a700` feat(backend): typed tool registry for Anthropic tool-use loop
+  - `backend/src/tools/schema.ts` defines eight tool specs tagged read|write:
+    - read: `bq_catalog_search`, `bq_describe_table`, `bq_dry_run`, `ask_user`
+    - write: `iam_create_sa`, `gh_create_repo`, `cloudbuild_create_trigger`, `cloudrun_deploy`
+  - `toAnthropicTools()` exports the shape `client.messages.create({ tools })` expects.
+  - `isWriteTool()` drives the loop's approval gate (write tools pause for user approval).
+  - No npm deps added; pure TypeScript types.
+
+- `c5d2e96` feat(backend): read-tool handlers
+  - `backend/src/tools/types.ts` — `ToolHandler` interface + `Catalog` type matching the `scripts/build-catalog.js` output shape (`datasets` is keyed by dataset name, `tables` is keyed by table name).
+  - `backend/src/tools/bq.ts` — three real handlers plus `loadCatalog()` (dev: reads `src/tools/data-catalog.json`; prod: reads `dist/tools/data-catalog.json`).
+  - `backend/src/tools/ask.ts` — ask_user handler returning `{ pending: true, question }`.
+  - `backend/src/tools/registry.ts` — `dispatch(name, input, deps)` routing known tools to handlers, returning a clear `not_implemented` error for write tools until commit 2b.
+  - `backend/src/tools/data-catalog.json` — embedded copy of `docs/data-catalog.json` so the container is self-contained.
+  - Dependency bump: `@google-cloud/bigquery` `^7.9.0`.
+  - Dockerfile: copies `src/tools/*.json` into `dist/tools/` during the build stage so `loadCatalog()` finds the file at runtime.
+  - Sanity-tested locally: `bq_catalog_search({query:"payroll"})` returns 6 hits, top hit is `ADP_system.adp_payroll_output` with the overlay description.
+
+### Phase 2 commits still to ship
+
+1. BQ-backed session store (commit 3): dataset `idso_app_generator`, tables `sessions` and `turns`, write-ahead semantics so every tool call is durable and replayable across request boundaries.
+2. Anthropic tool-use loop (commit 4): wraps `messages.create` in a plan → approve → execute loop, calls the dispatcher, persists every step through the session store.
+3. SSE chat endpoint (commit 5): `POST /chat` that streams `thought` / `tool_call` / `tool_result` / `approval_needed` / `ask_user` events.
+4. Write-tool handlers (commit 2b — deferred until after the approval-gated loop is in place): `iam_create_sa`, `gh_create_repo`, `cloudbuild_create_trigger`, `cloudrun_deploy`.
+
+### Known gaps
+
+- Two PMS_system tables (`BankPayerList_Normalised`, `BankTxn_Normalised`) lack descriptions in the catalog overlay. Everything else in the warehouse (78 of 80 tables) has dataset- and table-level descriptions.
+- The backend image is now ~3x the size it was after the BQ client was added; acceptable for dev, worth revisiting if cold starts regress.
