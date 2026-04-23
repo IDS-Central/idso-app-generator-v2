@@ -13,7 +13,7 @@ COPY src ./src
 RUN npm run build
 
 # Ship runtime data assets (catalog, etc.) next to compiled JS
-RUN mkdir -p dist/tools && cp src/tools/data-catalog.json dist/tools/data-catalog.json
+RUN mkdir -p dist/tools dist/session && cp src/tools/data-catalog.json dist/tools/data-catalog.json && cp src/session/schema.sql dist/session/schema.sql
 
 # Prune dev deps for the runtime image
 RUN npm prune --omit=dev
