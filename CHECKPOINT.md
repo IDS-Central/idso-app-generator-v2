@@ -605,3 +605,67 @@ This is a 5-minute experiment that would isolate the bug before another code cha
 - [x] 2b part 2/4 -- gh_create_repo
 - [~] 2b part 3/4 -- cloudbuild_create_trigger (handler code shipped, IAM widened to Option A, smoke test STILL blocked, root cause not yet pinned down)
 - [ ] 2b part 4/4 -- cloudrun_deploy
+
+---
+
+## 2026-04-23 late-evening  Commit 2b part 3/4 RESOLVED 
+
+### Root cause
+The per-app runtime SA was missing `roles/developerconnect.readTokenAccessor`.
+This role is required for the SA to be used as the trigger identity for
+DeveloperConnect-backed Cloud Build triggers: Cloud Build validates at
+`triggers.create` time that the trigger SA can read the GitHub token behind
+the gitRepositoryLink. Without it, the API returns HTTP 403
+PERMISSION_DENIED regardless of any Cloud Build-family roles the SA has.
+
+### How it was isolated (gcloud manual experiment, not code changes)
+1. Listed project org policies  none (ruled out constraints).
+2. Dumped backend SA roles  it had `developerconnect.readTokenAccessor`
+   plus `developerconnect.admin`; runtime SA had neither.
+3. Ran `gcloud beta builds triggers create developer-connect` using backend
+   SA as `--service-account`: succeeded (rc=0). Used runtime SA with only
+   the prior 5 roles: failed 403. This cleanly isolated the gap to the
+   runtime SA's IAM posture, not our handler code.
+4. Added only `roles/developerconnect.readTokenAccessor` to the runtime SA
+   and retried: succeeded (rc=0). Confirmed sole missing role.
+
+### Fix (shipped)
+- Commit `80a89d5`: `fix(iam): add roles/developerconnect.readTokenAccessor
+  to runtime SA`. RUNTIME_ROLES grew from 5  6 entries in
+  `backend/src/tools/iam.ts`.
+- Cloud Run revision `idso-app-generator-v2-backend-dev-00019-8hk` now
+  runs image `:80a89d5`.
+- `tsc --noEmit` passed before push.
+
+### End-to-end smoke test (app_name = smoke-cb-3)
+- Turn 1 iam_create_sa  **completed**. SA
+  `idso-smoke-cb-3-runtime@reconciliation-dashboard.iam.gserviceaccount.com`
+  granted all 6 roles including
+  `roles/developerconnect.readTokenAccessor`.
+- Turn 2 (model asked for description, no tool call  expected).
+- Turn 3 gh_create_repo  **completed**. Repo
+  `IDS-Central/idso-app-smoke-cb-3` created from template.
+- Turn 4 cloudbuild_create_trigger  **completed**. Trigger
+  `idso-app-smoke-cb-3-dev` (id `b1ca04ac-995d-4865-b371-46582ac62ee8`)
+  created with runtime SA as identity, pointed at the DeveloperConnect
+  gitRepositoryLink. **First time this step has passed end-to-end.**
+
+### Status
+- [x] 2b part 1/4  iam_create_sa (role set now 6)
+- [x] 2b part 2/4  gh_create_repo
+- [x] 2b part 3/4  cloudbuild_create_trigger **VALIDATED**
+- [ ] 2b part 4/4  cloudrun_deploy
+
+### Cleanup done this session
+- Isolation-test SA deleted; all 7 project bindings removed; temp
+  `isolation-test-iso-gcloud-1` trigger deleted (part of experiment).
+- smoke-cb-3 runtime SA deleted; 6 project bindings removed; trigger
+  `b1ca04ac-...` deleted; gitRepositoryLink delete LRO kicked off.
+
+### Outstanding manual cleanup (gh CLI lacks `delete_repo` scope)
+- `IDS-Central/idso-app-smoke-cb-1`
+- `IDS-Central/idso-app-smoke-cb-2`
+- `IDS-Central/idso-app-smoke-cb-3`
+
+### Next
+Resume at 2b part 4/4 (`cloudrun_deploy`) in the next session.
