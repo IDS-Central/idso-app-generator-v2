@@ -1114,3 +1114,51 @@ Earlier grep missed the /v1 prefix. The actual backend chat routes are:
 - Frontend: /api/chat/sessions GET proxy (list)
 - Frontend: status/progress indicator while backend is running a turn (derive from lack of turn events after POST /turn)
 - Optional: prod Cloud Run service idso-app-generator-v2-frontend-prod (separate SA or same)
+
+## Phase 3 - Milestone 3.3: session sidebar + progress indicator (DONE)
+
+Date: 2026-04-24
+Commit: cc98a4a (head on origin/main)
+
+### Context correction
+The previous checkpoint listed "Backend: add GET /v1/chat/sessions" as a pending item, but it was actually already on main (see backend/src/routes/chat.ts + store.listSessionsForUser). Commit on main: 4ac7698.
+
+Additionally, commit 1638f09 (fix(frontend): use IDSO_APP_URL for post-OAuth redirect) landed on main between checkpoints but was not yet deployed to the dev Cloud Run service.
+
+### OAuth redirect URI verification
+Checked the IDSO Access OAuth 2.0 client (client ID: 142054839786-2l96g18niql6odruarf72vg3256tsl8r.apps.googleusercontent.com). Redirect URI #3 is already registered:
+https://idso-app-generator-v2-frontend-dev-ne5jp3kqbq-uc.a.run.app/api/auth/authorize
+
+No addition needed. This unblocks end-to-end OAuth login against the shared client.
+
+### Files added
+- (none new - API route file already existed)
+
+### Files modified
+- frontend/src/lib/backend.ts: added listSessions() helper + SessionListItem type (+11 lines)
+- frontend/src/app/api/chat/sessions/route.ts: added GET handler (limit 1..200, default 50) alongside existing POST
+- frontend/src/components/ChatPage.tsx: 259-line rewrite - sidebar with previous sessions (click-to-switch), in-flight progress indicator while a turn is running, SessionSummary/Turn interfaces
+
+### Verification
+- `npx tsc --noEmit`: clean (exit 0)
+- Diff stat: 3 files changed, +216 / -84
+- Pushed as cc98a4a on origin/main
+
+### Deployment note
+No Cloud Build trigger is wired to IDS-Central/idso-app-generator-v2, so pushing to main does NOT auto-deploy. Dev frontend deploy command (from shell history):
+
+    SHA=$(git rev-parse --short HEAD) && gcloud builds submit \
+      --config=frontend/cloudbuild.yaml \
+      --substitutions=_RUNTIME_SA=idso-app-generator-v2-frontend@reconciliation-dashboard.iam.gserviceaccount.com,_APP_URL=https://idso-app-generator-v2-frontend-dev-ne5jp3kqbq-uc.a.run.app,_SHORT_SHA=$SHA,_BACKEND_URL=https://idso-app-generator-v2-backend-dev-ne5jp3kqbq-uc.a.run.app \
+      frontend
+
+### Deferred / notes for next session
+- approveTurn() in frontend/src/lib/backend.ts sends { turnNumber, approved } but backend expects { tool_use_id, decision } (see backend/src/routes/chat.ts POST /v1/chat/:sessionId/approve). Approve/reject buttons in ChatPage will not work until this contract is fixed. Target for Milestone 3.4 polish.
+- Supply-chain smoke test (Phase 2 exit criterion #2) still deferred.
+- Orphaned test repos in IDS-Central still need manual deletion: idso-app-smoke-cb-1/2/3, idso-app-smoke-cd-1.
+- Prod frontend Cloud Run service (idso-app-generator-v2-frontend-prod) not yet created.
+
+## Phase 3 - Milestone 3.4 plan (next)
+- Fix approveTurn contract mismatch (see above).
+- Streaming tool-call progress indicators tied to actual "tool" role events once backend emits them.
+- End-to-end login verification in the browser against the redeployed dev frontend.
