@@ -817,3 +817,94 @@ The three files listed above are also staged as empty placeholders in `phase2-pe
 - Auth: Google OAuth 2.0 using credentials already stored in Secret Manager.
 - Deployment: separate Cloud Run service (not bundled with backend).
 - Stack: Next.js (version TBD at Phase 3 kickoff).
+
+---
+
+## 2026-04-24 session B: Phase 2 COMPLETE -> Phase 3
+
+### Commits this session
+
+- `ae943ce` docs(phase2): stage phase2-pending/ placeholders + checkpoint handoff
+- `2fb8cf1` feat(phase2): wire cloud_build_wait + repair-loop into agent (Phase 2 close-out)
+
+HEAD: `2fb8cf1` on main, pushed.
+
+### Phase 2 close-out: what landed in 2fb8cf1
+
+8 files changed, 1251 insertions(+), 63 deletions(-)
+
+New: backend/src/tools/build.ts (cloud_build_wait handler, 165 lines, read-only, polls Cloud Build API).
+New: backend/src/agent/repair-loop.test.ts (71 lines, 11 tests).
+Modified: backend/src/agent/loop.ts (296 -> 494 lines, repair-loop integration + logsResult.data -> .result fix).
+Modified: backend/src/tools/schema.ts (added CLOUD_BUILD_WAIT ToolSpec before TOOL_REGISTRY array + added to array; 592 -> 615 lines).
+Modified: backend/src/tools/registry.ts (import cloudBuildWait + register in HANDLERS map).
+
+### Verification that passed
+
+- `cd backend && npx --no-install tsc --noEmit` -> exit 0
+- `cd backend && npm test` -> 11 tests, 11 pass, 0 fail
+- TOOL_REGISTRY integrity tests all pass including 'contains all expected Phase 2 tools' and 'no duplicate tool names'
+
+### Phase 2 exit criteria status
+
+1. Repair-loop integrated into agent/loop.ts -- DONE (2fb8cf1).
+2. Supply-chain smoke test -- DEFERRED until Phase 3 auth ships (needs real user-triggered agent run through frontend; not a blocker for Phase 3 kickoff).
+
+Total tool count: 25 (was 24).
+
+### Loose ends / debt to revisit
+
+- phase2-pending/ directory KEPT per user request. Contains the verbatim user-pasted source files before fixes. Delete when entire project ships and trace-back history no longer needed.
+- loop.ts best-effort: repair-loop only fires on cloudrun_deploy failures. Other write-tool failures (sql, secrets, etc.) fall through to default error path. Revisit if agent gets stuck.
+- The 3 final `assert.match` lines in repair-loop.test.ts were added via echo >> appends in terminal (not Editor paste). Assertions match the actual formatRepairPrompt output verified by grepping repair-loop.ts.
+
+---
+
+## Phase 3 plan - kickoff
+
+### User directives (received 2026-04-24)
+
+**Q1 scope:** chat-style app generator bot. Features: Google login, live view of agent tool calls (like Claude Code activity panel), approval buttons for write-tool gates, list of previously generated apps (left rail), per-app status dashboard (right pane), healthcare/dental-specific suggestion chips for first-time users.
+
+**Q2 tech stack:** Next.js 14 App Router + TypeScript + Tailwind + shadcn/ui. Deployed as separate Cloud Run service `idso-app-generator-frontend` (NOT bundled with backend).
+
+**Q3 auth:** Google OAuth 2.0. Credentials already in Secret Manager as `oauth-client-id` and `oauth-client-secret`.
+
+**Q4 repo layout:** New `frontend/` directory in this monorepo alongside `backend/`.
+
+### Milestones (commit + push + deploy + smoke-test between each)
+
+**3.1 Frontend skeleton + Google OAuth + Cloud Run deploy.** Empty Next.js 14 app, Google login via auth.js (NextAuth v5) using Secret Manager credentials, protected / route shows logged-in user email + logout, deployed to idso-app-generator-frontend on Cloud Run. No backend integration yet. De-risks the trickiest piece first.
+
+**3.2 Chat UI + backend streaming endpoint.** 3-pane layout (left rail=app list, center=chat thread, right=status dashboard collapsible). Wire chat input to new backend endpoint (POST /agent/run) streaming tool calls via SSE. Inline approval UI as yellow cards. Ephemeral (no persistence yet). Good time to run the deferred Phase 2 supply-chain smoke test here.
+
+**3.3 Persistence + app list + status dashboard.** app_generations store. Left rail pulls from it. Status dashboard pulls live Cloud Run + Cloud Build data per app. Chat thread history persists per user. DB choice deferred (see investigation item #5).
+
+**3.4 Onboarding polish.** Suggestion chips (healthcare/dental vertical; see below). Clarifying-question flow for vague prompts. Success/failure cards with 'Open your app' CTA. Empty states, loading skeletons. Approval-card summaries in plain English instead of raw JSON.
+
+### Suggestion chip wording (healthcare/dental vertical, per user directive)
+
+These appear on the first-time-user welcome screen. Clicking a chip pre-fills the chat input (user can edit before sending).
+
+- "Build a KPI Dashboard that tracks doctor production over time"
+- "Build a patient feedback form"
+- (expand list with more healthcare/dental examples in 3.4)
+
+### Investigation needed before 3.1 starts
+
+1. Does backend have existing session/auth middleware? (grep -rn 'session\|cookie\|auth' backend/src/). May need to add /me endpoint.
+2. Is backend Cloud Run public or IAM-restricted? (gcloud run services describe).
+3. Backend base URL. (gcloud run services list).
+4. Does agent loop support streaming or only batch? (read loop.ts). If batch-only, adds work to 3.2.
+5. Is project DB already in use? (gcloud sql instances list). If yes reuse for app_generations; if no, 3.3 needs Cloud SQL Postgres vs Firestore decision.
+
+### Phase 3 pre-commitments (LOCKED IN)
+
+- Frontend = separate Cloud Run service `idso-app-generator-frontend`, NOT bundled with backend.
+- Auth = Google OAuth 2.0 using `oauth-client-id` and `oauth-client-secret` from Secret Manager.
+- Tech stack = Next.js 14 App Router, TypeScript, Tailwind, shadcn/ui.
+- Monorepo layout: /backend/ + /frontend/ in same repo.
+
+### Next step when session resumes
+
+Run the 5 investigation commands above, summarize findings, then start Milestone 3.1 by scaffolding frontend/ with `npx create-next-app@latest`.
