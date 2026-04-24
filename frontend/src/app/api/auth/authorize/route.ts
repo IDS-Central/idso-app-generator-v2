@@ -70,6 +70,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const dest = publicUrl('/', request);
     const response = NextResponse.redirect(dest, { status: 302 });
     response.cookies.delete(STATE_COOKIE);
+  console.log(JSON.stringify({ evt: "authorize_set_cookie", email: user.email, cookie_len: cookieValue.length, secret_key_set: Boolean(process.env.SECRET_KEY), secret_key_len: process.env.SECRET_KEY ? process.env.SECRET_KEY.length : 0, redirect_to: dest.toString() }));
     response.cookies.set(SESSION_COOKIE_NAME, cookieValue, {
       httpOnly: true,
       secure: true,
