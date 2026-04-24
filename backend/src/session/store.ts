@@ -251,6 +251,44 @@ export class SessionStore {
     };
   }
 
+  /**
+   * List recent sessions for a given user, most-recently-active first.
+   * Relies on the sessions table being clustered on user_email for efficiency.
+   */
+  async listSessionsForUser(
+    userEmail: string,
+    limit = 50,
+  ): Promise<Array<{ sessionId: string; title: string | null; lastActivityAt: string; createdAt: string }>> {
+    const sql = `
+      SELECT
+        session_id,
+        ANY_VALUE(title) AS title,
+        FORMAT_TIMESTAMP('%Y-%m-%dT%H:%M:%SZ', MAX(last_activity_at)) AS last_activity_at,
+        FORMAT_TIMESTAMP('%Y-%m-%dT%H:%M:%SZ', MIN(created_at))       AS created_at
+      FROM \`${this.project}.${this.dataset}.sessions\`
+      WHERE user_email = @user_email
+      GROUP BY session_id
+      ORDER BY MAX(last_activity_at) DESC
+      LIMIT @limit
+    `;
+    const [rows] = await this.bq.query({
+      query: sql,
+      params: { user_email: userEmail, limit },
+      types: { user_email: 'STRING', limit: 'INT64' },
+    });
+    return (rows as Array<{
+      session_id: string;
+      title: string | null;
+      last_activity_at: string;
+      created_at: string;
+    }>).map((r) => ({
+      sessionId: r.session_id,
+      title: r.title,
+      lastActivityAt: r.last_activity_at,
+      createdAt: r.created_at,
+    }));
+  }
+
   /* ---------- internals ---------- */
 
   private async nextTurnNumber(sessionId: string): Promise<number> {

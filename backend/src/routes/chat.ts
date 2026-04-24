@@ -67,6 +67,22 @@ export function registerChatRoutes(app: FastifyInstance, deps: ChatRouteDeps): v
 
   const log = deps.logger.child({ component: 'chat_routes' });
 
+  // -- GET /v1/chat/sessions (list recent sessions for this user) -------------
+  app.get(
+    '/v1/chat/sessions',
+    { preHandler: requireUser },
+    async (req, rep) => {
+      const user = req.user;
+      if (!user) {
+        return rep.code(401).send({ error: 'unauthenticated' });
+      }
+      const limitParam = (req.query as { limit?: string })?.limit;
+      const limit = Math.max(1, Math.min(200, Number(limitParam) || 50));
+      const rows = await deps.store.listSessionsForUser(user.email, limit);
+      return rep.send({ sessions: rows });
+    },
+  );
+
   // -- POST /v1/chat/sessions ---------------------------------------------
   app.post(
     '/v1/chat/sessions',
