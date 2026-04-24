@@ -740,3 +740,38 @@ After shipping cloudrun_deploy (edc9d0c), audited the codebase against docs/PHAS
 ### Plan for this session
 Work autonomously end-to-end until Phase 2 is complete. Order: secrets  ownership  logs  plan  oauth  sandbox  sql  repair loop  post-deploy verify  tests  exit-criteria smoke tests. Commit after each tool ships + tsc --noEmit passes. Runtime validation via smoke test happens once for the full chain at the end (exit criterion #2) rather than per tool, because most of these are read-only or light-footprint.
 
+
+---
+
+## 2026-04-23 (night)  Phase 2 tools/tests all shipped
+
+All code work is done and pushed. CI will pick up `b3df995` and roll a new Cloud Run revision.
+
+### Shipped this session (in commit order)
+- `de86a4a` audit: Phase 2 remaining-work checklist added
+- `2fa7245` feat(tools): secret_create / secret_add_version / secret_access
+- `9c1eb9c` feat(tools): list_user_apps / write_owner_file
+- `e1c26cd` feat(tools): read_build_logs / read_cloud_run_logs
+- `78e647f` feat(tools): plan_present / budget_check + JsonSchema extended
+- (`feat oauth_add_redirect_uri`)
+- (`feat run_in_build_sandbox`)
+- `b5ee7bd` feat(tools): sql_create_instance / sql_create_database / sql_create_user
+- `1e95a51` feat: repair-loop helper + post-deploy verify tools
+- `b3df995` test: 11 unit tests (node:test, no new deps)
+
+### Tool count before  after
+- Before: 8 tools (ask_user, bq_catalog_search, bq_describe_table, bq_dry_run, iam_create_sa, gh_create_repo, cloudbuild_create_trigger, cloudrun_deploy)
+- After: **24 tools**  added secret_create, secret_add_version, secret_access, list_user_apps, write_owner_file, read_build_logs, read_cloud_run_logs, plan_present, budget_check, oauth_add_redirect_uri, run_in_build_sandbox, sql_create_instance, sql_create_database, sql_create_user, cloud_run_curl_protected, cloud_run_curl_health
+
+### What's NOT yet done / marked best-effort
+- Repair-loop integration into `agent/loop.ts`  helper module `repair-loop.ts` exists + tested, but loop.ts itself is unmodified. **Flagged "best effort, needs review".**
+- Exit-criterion #2 full supply-chain smoke test  not run this session. Running it would involve provisioning a real Cloud SQL instance (~$25/mo if left, ~10 min provisioning per attempt). Deferred to a dedicated follow-up session so it can be executed with the user's explicit go/no-go on the billing.
+- Exit-criterion #3 deliberate-error repair test  requires repair-loop integration into loop.ts first, which is the "best effort" deferred item.
+- Outstanding manual cleanup: delete the 4 test GitHub repos (`idso-app-smoke-cb-1/2/3`, `idso-app-smoke-cd-1`) from the IDS-Central org UI.
+
+### Runbook for next session (Phase 2 finish)
+1. Wait for CI on `b3df995` to deploy a new backend revision (expect ~3 min).
+2. Verify new tool count in backend by hitting `/v1/chat/sessions/<id>/turn` with a test message  Anthropic response should list all 24 tools.
+3. Decide whether to wire repair-loop into `agent/loop.ts` or ship Phase 2 as-is.
+4. Run the supply-chain smoke test (fresh app name, full plan  provision  deploy  curl health 200  curl protected 401  cleanup).
+5. If all green, declare Phase 2 complete and start Phase 3 (frontend  Next.js App Router).
