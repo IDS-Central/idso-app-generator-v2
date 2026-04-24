@@ -908,3 +908,39 @@ These appear on the first-time-user welcome screen. Clicking a chip pre-fills th
 ### Next step when session resumes
 
 Run the 5 investigation commands above, summarize findings, then start Milestone 3.1 by scaffolding frontend/ with `npx create-next-app@latest`.
+
+## Phase 3 Pre-Flight Investigation (addendum)
+
+Findings captured before scaffolding frontend/:
+
+### Backend Cloud Run service (confirmed)
+- Name: `idso-app-generator-v2-backend-dev`
+- URL: https://idso-app-generator-v2-backend-dev-ne5jp3kqbq-uc.a.run.app
+- Region: us-central1, Status: healthy
+- Note: non-dev (prod) service has not been deployed yet.
+
+### Backend HTTP surface (discovered)
+- GET  /livez  (liveness, routes/liveness.ts)
+- GET  /me  (current user, routes/me.ts)
+- POST /chat  (start session, routes/chat.ts:71)
+- POST /chat/:sessionId/turn  (send message, routes/chat.ts:86)
+- POST /chat/:sessionId/approve  (approval button, routes/chat.ts:130)
+- GET  /chat/:sessionId  (fetch session state, routes/chat.ts:180)
+
+### Streaming support
+- Backend agent/loop.ts is request/response, NOT streaming (no SSE, no async generators).
+- Frontend will poll GET /chat/:sessionId for the Claude-Code-like live view in Milestone 3.2.
+- Adding SSE to backend is deferred; polling is sufficient for Phase 3 MVP.
+
+### Persistence layer
+- BigQuery dataset: `reconciliation-dashboard.idso_app_generator`
+- Tables: `sessions` (clustered user_email, session_id), `turns` (clustered session_id, turn_number)
+- Cloud SQL Admin API is disabled on the project - confirmed BigQuery-only.
+
+### Frontend Cloud Run service (planned, not yet created)
+- Name: `idso-app-generator-frontend` (or -dev suffix during milestone 3.1)
+- Region: us-central1
+- Auth: NextAuth v5 (Auth.js) + Google provider, credentials from Secret Manager
+  - oauth-client-id
+  - oauth-client-secret
+- Redirect URI to register in GCP OAuth consent screen: https://<frontend-run-url>/api/auth/callback/google
