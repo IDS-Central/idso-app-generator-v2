@@ -308,6 +308,39 @@ export const WRITE_OWNER_FILE: ToolSpec = {
   side_effect: 'write',
 };
 
+export const READ_BUILD_LOGS: ToolSpec = {
+  name: 'read_build_logs',
+  description:
+    'Read Cloud Logging entries for a specific Cloud Build id. Returns the most recent log lines ordered newest-first.',
+  input_schema: {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      build_id: { type: 'string', pattern: '^[0-9a-f-]{16,64}$', description: 'Cloud Build build id (UUID).' },
+      limit: { type: 'integer', minimum: 1, maximum: 1000, default: 200 },
+    },
+    required: ['build_id'],
+  },
+  side_effect: 'read',
+};
+
+export const READ_CLOUD_RUN_LOGS: ToolSpec = {
+  name: 'read_cloud_run_logs',
+  description:
+    'Read Cloud Logging entries for a specific Cloud Run service. Optionally scope to a single revision_name. Returns the most recent log lines ordered newest-first.',
+  input_schema: {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      service_name: { type: 'string', pattern: '^[a-z][a-z0-9-]{1,62}[a-z0-9]$' },
+      revision_name: { type: 'string', pattern: '^[a-z0-9][a-z0-9-]{0,63}$' },
+      limit: { type: 'integer', minimum: 1, maximum: 1000, default: 200 },
+    },
+    required: ['service_name'],
+  },
+  side_effect: 'read',
+};
+
 export const ASK_USER: ToolSpec = {
   name: 'ask_user',
   description:
@@ -344,6 +377,8 @@ export const TOOL_REGISTRY: readonly ToolSpec[] = [
   SECRET_ACCESS,
   LIST_USER_APPS,
   WRITE_OWNER_FILE,
+  READ_BUILD_LOGS,
+  READ_CLOUD_RUN_LOGS,
   ASK_USER,
 ] as const;
 

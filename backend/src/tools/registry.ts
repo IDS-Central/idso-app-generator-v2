@@ -22,6 +22,7 @@ import { cloudbuildCreateTrigger } from './cloudbuild.js';
 import { cloudrunDeploy } from './cloudrun.js';
 import { secretCreate, secretAddVersion, secretAccess } from './secrets.js';
 import { listUserApps, writeOwnerFile } from './ownership.js';
+import { readBuildLogs, readCloudRunLogs } from './logs.js';
 
 const HANDLERS: Record<string, ToolHandler<any, any>> = {
   bq_catalog_search: bqCatalogSearch,
@@ -37,6 +38,8 @@ const HANDLERS: Record<string, ToolHandler<any, any>> = {
   secret_access: secretAccess,
   list_user_apps: listUserApps,
   write_owner_file: writeOwnerFile,
+  read_build_logs: readBuildLogs,
+  read_cloud_run_logs: readCloudRunLogs,
 };
 
 export async function dispatch(
