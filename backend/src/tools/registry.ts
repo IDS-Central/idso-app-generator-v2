@@ -5,7 +5,7 @@
  *   - iam_create_sa      -> wired (see ./iam.ts)
  *   - gh_create_repo           -> wired (see ./github.ts)
  *  - cloudbuild_create_trigger  -> wired (see ./cloudbuild.ts)
- *   - cloudrun_deploy    -> not yet implemented
+ *   - cloudrun_deploy      -> wired (see ./cloudrun.ts)
  * The loop gate pauses on write tools for user approval before dispatch,
  * so any unwired tool invocation returns a clear 'not_implemented'
  * response rather than crashing the turn.
@@ -19,6 +19,7 @@ import { askUser } from './ask.js';
 import { iamCreateSa } from './iam.js';
 import { ghCreateRepo } from './github.js';
 import { cloudbuildCreateTrigger } from './cloudbuild.js';
+import { cloudrunDeploy } from './cloudrun.js';
 
 const HANDLERS: Record<string, ToolHandler<any, any>> = {
   bq_catalog_search: bqCatalogSearch,
@@ -28,6 +29,7 @@ const HANDLERS: Record<string, ToolHandler<any, any>> = {
   iam_create_sa: iamCreateSa,
   gh_create_repo: ghCreateRepo,
   cloudbuild_create_trigger: cloudbuildCreateTrigger,
+  cloudrun_deploy: cloudrunDeploy,
 };
 
 export async function dispatch(
