@@ -15,7 +15,7 @@ export interface BackendError {
   body: unknown;
 }
 
-function backendBaseUrl(): string {
+export function backendBaseUrl(): string {
   const base = process.env.IDSO_BACKEND_URL;
   if (!base) {
     throw new Error('IDSO_BACKEND_URL env var is required');
@@ -23,7 +23,7 @@ function backendBaseUrl(): string {
   return base.replace(/\/+$/, '');
 }
 
-async function getIdToken(): Promise<string | null> {
+export async function getIdToken(): Promise<string | null> {
   const cookieStore = await cookies();
   const raw = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   if (!raw) return null;
@@ -70,4 +70,59 @@ export async function backendFetch<T = unknown>(
 /** GET /me on the backend - useful for sanity-checking the token forward path. */
 export async function backendMe(): Promise<{ email: string; name?: string | null; picture?: string | null }> {
   return backendFetch('/me');
+}
+
+/** Chat types mirrored from backend/src/types.ts (kept loose on purpose). */
+export interface StartSessionResponse {
+  sessionId: string;
+}
+
+export interface TurnResponse {
+  turnNumber: number;
+  role: 'assistant';
+  content: string;
+  toolCalls?: unknown[];
+  pendingApproval?: boolean;
+}
+
+export interface ApproveResponse {
+  ok: true;
+  turnNumber: number;
+}
+
+export async function startSession(body: { title?: string } = {}): Promise<StartSessionResponse> {
+  return backendFetch<StartSessionResponse>('/v1/chat/sessions', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export async function sendTurn(
+  sessionId: string,
+  body: { message: string },
+): Promise<TurnResponse> {
+  return backendFetch<TurnResponse>(`/v1/chat/${encodeURIComponent(sessionId)}/turn`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export async function approveTurn(
+  sessionId: string,
+  body: { turnNumber: number; approved: boolean } = { turnNumber: 0, approved: true },
+): Promise<ApproveResponse> {
+  return backendFetch<ApproveResponse>(`/v1/chat/${encodeURIComponent(sessionId)}/approve`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+/** Build the upstream SSE URL + Bearer headers, for use by the Next.js proxy route. */
+export async function buildStreamRequest(
+  sessionId: string,
+): Promise<{ url: string; headers: Record<string, string> } | null> {
+  const idToken = await getIdToken();
+  if (!idToken) return null;
+  const url = `${backendBaseUrl()}/v1/chat/${encodeURIComponent(sessionId)}/stream`;
+  return { url, headers: { authorization: `Bearer ${idToken}`, accept: 'text/event-stream' } };
 }
