@@ -1290,3 +1290,51 @@ User (nghia@independencedso.com) completed the full OAuth round-trip on revision
 
 ### Open item created by this verification
 The diagnostic `console.log` lines in `middleware.ts` (`mw_bounce`) and `authorize/route.ts` (`authorize_set_cookie`) are still emitting on every request and include the user's email address. Next commit will remove them  these were debug-only instrumentation and should not live in production.
+
+---
+
+## 2026-04-24  Chat UI smoke test revealed 3 bugs (and backend architecture clarification)
+
+### User reproduction
+User (nghia@independencedso.com) logged in successfully on rev `00009-x8p` and submitted a chat prompt. Result:
+- UI showed "thinking..." spinner.
+- No agent response ever rendered.
+- Page displayed: **"Application error: a client-side exception has occurred (see the browser console for more information)."**
+
+### Error captured from browser console
+```
+Minified React error #31; args[]=object with keys {is_error, output, tool_use_id}
+```
+React error #31 = "Objects are not valid as a React child". Something in the component tree is trying to render an object literal `{is_error, output, tool_use_id}` as JSX children. That shape matches Anthropic's `tool_result` content block exactly.
+
+### Root cause #1 (UI crash  blocking)
+`frontend/src/components/ChatPage.tsx` line 331 renders `{turn.content}` directly inside `TurnBubble`. When a turn has `role === 'tool'` its `content` field is the tool_result object `{is_error, output, tool_use_id}`, not a string. React bails out of the entire tree.
+
+### Backend architecture clarification (previously misunderstood)
+Reading `backend/src/routes/chat.ts:12` explicit comment: "The SSE stream in this commit is intentionally minimal  it replays turn history and heartbeats every 15s. Live token streaming out of runAgentLoop is a later improvement; the sync POST /turn endpoint is already functional end to end."
+
+So the actual contract is:
+- `POST /v1/chat/:sessionId/turn`  runs `runAgentLoop()` to completion synchronously; response body is a `LoopResult` discriminated union: `{status:'completed', finalText, iterations}` | `{status:'awaiting_approval', toolUseId, ...}` | `{status:'error', error, iterations}`.
+- `POST /v1/chat/:sessionId/approve`  body `{tool_use_id, decision:'approved'|'rejected', note?}`; resumes loop; returns next LoopResult (or `{status:'rejected', tool_use_id}` if rejected).
+- `GET /v1/chat/:sessionId/stream`  SSE replay of persisted turns + 15s heartbeats. No live tool-use events.
+
+**Implication:** the frontend does NOT need to parse SSE events for `tool_use_id`  it's in the POST /turn response body directly. Previous plan to wire this via SSE was wrong.
+
+### Root cause #2 (approveTurn contract  still broken but masked by #1)
+- Frontend `lib/backend.ts::approveTurn(sessionId, {turnNumber, approved})`  wrong shape.
+- Frontend `/api/chat/[sessionId]/approve` proxy accepts `{turnNumber, approved}`  wrong shape.
+- Frontend `ChatPage.tsx` inline approve callback uses `fetch(.../approve, {body: JSON.stringify({turnNumber, approved})})`  wrong shape.
+- Backend expects `{tool_use_id, decision:'approved'|'rejected', note?}`.
+- Approve/Reject buttons visibly render (gated by `turn.pendingApproval`) but fire a 400 `bad_approval_body` on the backend.
+
+### Root cause #3 (pendingApproval never set)
+The turn-submission path in ChatPage doesn't inspect the POST /turn response body to capture `awaiting_approval` + `toolUseId` and set `turn.pendingApproval = true` on a new turn. So even if the UI didn't crash, no Approve button would ever appear.
+
+### Plan (in order)
+1. **Ship a dedicated crash fix first.** Minimal `TurnBubble` change: coerce `turn.content` to a string when it's an object (fallback to `content.output ?? JSON.stringify(content)`). Optionally gate rendering for `role === 'tool'` behind a collapsed details block. One file, one commit, one deploy.
+2. **Fix approveTurn contract + pendingApproval wiring together** (Milestone 3.4 proper). Three files (lib/backend.ts, api/chat/[id]/approve/route.ts, components/ChatPage.tsx). Rename `turnNumber`/`approved`  `toolUseId`/`decision` throughout the frontend. Capture `toolUseId` from POST /turn response when status === 'awaiting_approval'.
+3. **End-to-end smoke test the full chat + approve flow.**
+
+### Also verified
+- `backend/src/` layout: agent loop is at `backend/src/agent/loop.ts` (not `backend/src/loop.ts` as previously guessed), session store at `backend/src/session/store.ts`.
+- The diagnostic-log removal (commit `dabe54e`, rev `00009-x8p`) is live and clean.
