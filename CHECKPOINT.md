@@ -669,3 +669,39 @@ PERMISSION_DENIED regardless of any Cloud Build-family roles the SA has.
 
 ### Next
 Resume at 2b part 4/4 (`cloudrun_deploy`) in the next session.
+
+## 2026-04-23 very-late  Phase 2 Commit 2b part 4/4 RESOLVED 
+
+### cloudrun_deploy shipped and validated end-to-end
+
+**Commits this session:**
+- `43ef15e` feat(tools): implement cloudrun_deploy (Phase 2 part 4/4)
+- `2f8a541` fix(cloudrun): use .js extension in relative imports (ESM runtime)
+
+**Design**: `cloudrun_deploy` does NOT re-implement the deploy  it fires the existing `idso-app-{name}-{env}` trigger via `cloudbuild.googleapis.com/v1/.../triggers/{name}:run`. The trigger's cloudbuild.yaml already has the `gcloud run deploy` step. This bypasses waiting for a git push.
+
+**IAM**: No new roles needed. Runtime SA's `roles/cloudbuild.builds.builder` (granted by `iam_create_sa`) already covers `cloudbuild.builds.create` which is what `triggers.run` requires.
+
+**Hotfix lesson**: tsc `--noEmit` passes without `.js` extensions, but the emitted Node ESM output requires them. Revision `00020-5cp` failed with `ERR_MODULE_NOT_FOUND` at startup because `from './types'` doesn't resolve in runtime. Fixed by switching to `from './types.js'`. Cloud Run auto-rejected the broken revision (good)  traffic stayed on `00019-8hk` until `00021-69r` was healthy.
+
+**Smoke test (app_name=smoke-cd-1, 4 turns, all tools completed)**:
+1. iam_create_sa  ok (6 roles incl. readTokenAccessor)
+2. gh_create_repo  ok (supplied description in prompt to skip clarifying turn)
+3. cloudbuild_create_trigger  ok (trigger id `51c23b96-4c57-4387-891c-03af8df83899`)
+4. **cloudrun_deploy  ok (build id `0b15bd1d-230b-4b26-b937-8c4838867b0a` status=QUEUED)**  the new one
+
+Cleanup done: build canceled; trigger deleted; 6 role bindings removed; SA deleted; gitRepositoryLink was already gone (NOT_FOUND  cleaned up with the trigger). Cloud Run service `idso-app-smoke-cd-1-dev` was never created (build canceled pre-deploy) so no service cleanup needed.
+
+### Current state
+- Cloud Run: `idso-app-generator-v2-backend-dev-00021-69r` @ 100% traffic, image `:2f8a541`
+- All 4 Phase 2 2b tools wired and validated: iam_create_sa, gh_create_repo, cloudbuild_create_trigger, cloudrun_deploy
+- Phase 2 Commit 2b is COMPLETE
+
+### Outstanding manual cleanup (same as before; gh CLI lacks delete_repo scope)
+- `IDS-Central/idso-app-smoke-cb-1`
+- `IDS-Central/idso-app-smoke-cb-2`
+- `IDS-Central/idso-app-smoke-cb-3`
+- `IDS-Central/idso-app-smoke-cd-1`
+
+### Next
+- Phase 2 Commit 2c (whatever comes after 2b)  check project plan
