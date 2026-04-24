@@ -1,0 +1,74 @@
+# Cloud Build config for the IDSO app generator frontend.
+#
+# Deploys to Cloud Run service ${_SERVICE_NAME} in ${_REGION}.
+# Triggered on push to main (dev env) via a Cloud Build trigger configured
+# separately. Log destination is Cloud Logging only to satisfy the IDSO rule
+# of not writing build logs to a GCS bucket the frontend SA doesn't own.
+#
+# Substitutions:
+#   _SERVICE_NAME  Cloud Run service name (default: idso-app-generator-v2-frontend-dev)
+#   _REGION        GCP region (default: us-central1)
+#   _REPO          Artifact Registry repo (default: idso-apps)
+#   _IMAGE         Image name within the repo (default: idso-app-generator-v2-frontend)
+#   _RUNTIME_SA    Runtime service account email
+#   _APP_URL       Public HTTPS base URL of this Cloud Run service (e.g. https://idso-app-generator-v2-frontend-dev-XXXX.a.run.app)
+#   _BACKEND_URL   Public HTTPS base URL of the backend service
+#   _GCP_PROJECT   GCP project ID (default: reconciliation-dashboard)
+
+substitutions:
+  _SERVICE_NAME: idso-app-generator-v2-frontend-dev
+  _REGION: us-central1
+  _REPO: idso-apps
+  _IMAGE: idso-app-generator-v2-frontend
+  _GCP_PROJECT: reconciliation-dashboard
+  _RUNTIME_SA: ''        # required at trigger time
+  _APP_URL: ''           # required at trigger time (fill after first deploy)
+  _BACKEND_URL: ''       # required at trigger time
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_HIGHCPU_8
+
+steps:
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    dir: frontend
+    args:
+      - build
+      - '--tag'
+      - '${_REGION}-docker.pkg.dev/${_GCP_PROJECT}/${_REPO}/${_IMAGE}:${SHORT_SHA}'
+      - '--tag'
+      - '${_REGION}-docker.pkg.dev/${_GCP_PROJECT}/${_REPO}/${_IMAGE}:latest'
+      - '.'
+
+  - id: push
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - '--all-tags'
+      - '${_REGION}-docker.pkg.dev/${_GCP_PROJECT}/${_REPO}/${_IMAGE}'
+
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - '${_SERVICE_NAME}'
+      - '--image=${_REGION}-docker.pkg.dev/${_GCP_PROJECT}/${_REPO}/${_IMAGE}:${SHORT_SHA}'
+      - '--region=${_REGION}'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--port=8080'
+      - '--service-account=${_RUNTIME_SA}'
+      - '--set-env-vars=NODE_ENV=production,IDSO_GCP_PROJECT=${_GCP_PROJECT},IDSO_APP_URL=${_APP_URL},IDSO_BACKEND_URL=${_BACKEND_URL},IDSO_ALLOWED_DOMAIN=independencedso.com'
+      - '--set-secrets=SECRET_KEY=idso-app-generator-v2-frontend-secret-key:latest'
+      - '--min-instances=0'
+      - '--max-instances=3'
+      - '--memory=512Mi'
+      - '--cpu=1'
+      - '--timeout=60'
+
+images:
+  - '${_REGION}-docker.pkg.dev/${_GCP_PROJECT}/${_REPO}/${_IMAGE}:${SHORT_SHA}'
+  - '${_REGION}-docker.pkg.dev/${_GCP_PROJECT}/${_REPO}/${_IMAGE}:latest'
