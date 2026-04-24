@@ -705,3 +705,38 @@ Cleanup done: build canceled; trigger deleted; 6 role bindings removed; SA delet
 
 ### Next
 - Phase 2 Commit 2c (whatever comes after 2b)  check project plan
+
+---
+
+## 2026-04-23 (late-evening continued)  Phase 2 REMAINING WORK AUDIT
+
+After shipping cloudrun_deploy (edc9d0c), audited the codebase against docs/PHASE-PLAN.md item #3. Found that only 8 of ~18 tools are implemented. Here is the full outstanding list for Phase 2.
+
+### Tools currently wired (8)
+- ask_user, bq_catalog_search, bq_describe_table, bq_dry_run, cloudbuild_create_trigger, cloudrun_deploy, gh_create_repo, iam_create_sa
+
+### Tool files to implement (plan #3)
+- [ ] `backend/src/tools/secrets.ts`  `secret_create`, `secret_access`, `secret_add_version` via @google-cloud/secret-manager
+- [ ] `backend/src/tools/ownership.ts`  `list_user_apps` (BigQuery read), `write_owner_file`
+- [ ] `backend/src/tools/logs.ts`  `read_build_logs`, `read_cloud_run_logs` via Cloud Logging
+- [ ] `backend/src/tools/plan.ts`  `plan_present` and budget tools
+- [ ] `backend/src/tools/oauth.ts`  `oauth_add_redirect_uri` via GCP OAuth Brand / Client API
+- [ ] `backend/src/tools/sandbox.ts`  `run_in_build_sandbox` via Cloud Run Jobs
+- [ ] `backend/src/tools/sql.ts`  Cloud SQL Admin (instance create/describe, user create, database create)
+
+### Loop behaviors (plan #8, #9)
+- [ ] Retry/repair loop on cloud_build_wait FAILURE (plan #8)
+- [ ] Post-deploy verification after cloud_run_deploy (plan #9)
+
+### Tests (plan #10)
+- [ ] Unit tests for tool validators
+- [ ] Integration test: dry-run build using plan_present + read-only tools against real Anthropic API
+
+### Phase 2 exit criteria (plan lines 7378)
+- [ ] "list my apps" runs end-to-end and returns a list
+- [ ] "create a supply-requests app"  plan  approval  real repo  real Cloud SQL DB  real Cloud Run  /api/health 200, protected path 401
+- [ ] Deliberate syntax error triggers repair loop that fixes the build
+
+### Plan for this session
+Work autonomously end-to-end until Phase 2 is complete. Order: secrets  ownership  logs  plan  oauth  sandbox  sql  repair loop  post-deploy verify  tests  exit-criteria smoke tests. Commit after each tool ships + tsc --noEmit passes. Runtime validation via smoke test happens once for the full chain at the end (exit criterion #2) rather than per tool, because most of these are read-only or light-footprint.
+
