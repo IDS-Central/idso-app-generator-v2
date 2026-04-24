@@ -1060,3 +1060,26 @@ Status: DONE. tsc --noEmit exits 0, npm run build succeeds.
   https://idso-app-generator-v2-frontend-dev-ne5jp3kqbq-uc.a.run.app/api/auth/authorize
 - This is manual (GCP Console -> APIs & Services -> Credentials -> shared OAuth 2.0 Client ID -> Authorized redirect URIs)
 - Without this, end-to-end OAuth sign-in will fail with redirect_uri_mismatch
+
+## Phase 3 - Milestone 3.2 kickoff: corrected backend contract
+
+### Correction to earlier investigation
+Earlier grep missed the /v1 prefix. The actual backend chat routes are:
+- POST /v1/chat/sessions            (start new session, returns {sessionId})
+- POST /v1/chat/:sessionId/turn     (add a user turn, returns turn result)
+- POST /v1/chat/:sessionId/approve  (approve a pending tool call)
+- GET  /v1/chat/:sessionId/stream   (SSE: replays turn history, then heartbeats)
+
+### Impact
+- Backend DOES have SSE at /v1/chat/:sessionId/stream (emits 'turn', 'replay_complete' events)
+- There is NO plain JSON GET /v1/chat/:sessionId, only the SSE stream
+- There is NO GET /v1/chat/sessions (list). Session list will be deferred to a later milestone.
+- frontend/src/lib/backend.ts needs path updates to /v1/chat/... prefix
+
+### Revised Milestone 3.2 plan
+1. Fix frontend/src/lib/backend.ts paths to /v1/chat/... + add stream helper
+2. Add Next.js proxy route GET /api/chat/:sessionId/stream that forwards Bearer auth and pipes backend SSE
+3. Add Next.js API routes: POST /api/chat/sessions, POST /api/chat/:sessionId/turn, POST /api/chat/:sessionId/approve (thin pass-throughs with auth)
+4. Replace authenticated / landing page with chat UI: message list, input box, suggestion chips, approve button
+5. Use EventSource in the browser for live updates (no polling needed)
+6. Suggestion chips: 'Build a KPI dashboard that tracks doctor production over time', 'Build a patient feedback form'
