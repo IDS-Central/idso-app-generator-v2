@@ -722,7 +722,7 @@ After shipping cloudrun_deploy (edc9d0c), audited the codebase against docs/PHAS
 - [x] `backend/src/tools/plan.ts`  `plan_present` + `budget_check` (144 LOC); extended JsonSchema type with minItems/maxItems
 - [x] `backend/src/tools/oauth.ts`  `oauth_add_redirect_uri` via IAM OAuth Clients API (85 LOC; GET/PATCH with fieldMask)
 - [x] `backend/src/tools/sandbox.ts`  `run_in_build_sandbox` via Cloud Run Jobs v2 :run (~110 LOC). NOTE: requires out-of-band pre-provisioning of idso-build-sandbox Cloud Run Job template.
-- [ ] `backend/src/tools/sql.ts`  Cloud SQL Admin (instance create/describe, user create, database create)
+- [x] `backend/src/tools/sql.ts`  Cloud SQL Admin v1beta4 (sql_create_instance / sql_create_database / sql_create_user, 185 LOC). Supports IAM and built-in users.
 
 ### Loop behaviors (plan #8, #9)
 - [ ] Retry/repair loop on cloud_build_wait FAILURE (plan #8)

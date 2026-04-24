@@ -429,6 +429,58 @@ export const RUN_IN_BUILD_SANDBOX: ToolSpec = {
   side_effect: 'write',
 };
 
+export const SQL_CREATE_INSTANCE: ToolSpec = {
+  name: 'sql_create_instance',
+  description:
+    'Create a Cloud SQL PostgreSQL instance in us-central1. Long-running (5-10 minutes). Idempotent on ALREADY_EXISTS. Returns the operation_name to poll.',
+  input_schema: {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      instance_name: { type: 'string', pattern: '^[a-z][a-z0-9-]{0,79}$' },
+      tier: { type: 'string', pattern: '^db-[a-z0-9-]{2,60}$', default: 'db-f1-micro', description: 'Cloud SQL tier; e.g. db-f1-micro, db-custom-1-3840.' },
+      database_version: { type: 'string', pattern: '^POSTGRES_[0-9]{2}$|^MYSQL_[0-9]_[0-9]$', default: 'POSTGRES_15' },
+      root_password: { type: 'string', minLength: 12, maxLength: 128, description: 'Initial root/postgres password. Store in Secret Manager separately.' },
+    },
+    required: ['instance_name', 'root_password'],
+  },
+  side_effect: 'write',
+};
+
+export const SQL_CREATE_DATABASE: ToolSpec = {
+  name: 'sql_create_database',
+  description:
+    'Create a database inside an existing Cloud SQL instance. Idempotent on ALREADY_EXISTS.',
+  input_schema: {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      instance_name: { type: 'string', pattern: '^[a-z][a-z0-9-]{0,79}$' },
+      database_name: { type: 'string', pattern: '^[a-zA-Z_][a-zA-Z0-9_]{0,62}$' },
+    },
+    required: ['instance_name', 'database_name'],
+  },
+  side_effect: 'write',
+};
+
+export const SQL_CREATE_USER: ToolSpec = {
+  name: 'sql_create_user',
+  description:
+    'Create a user on an existing Cloud SQL instance. Either pass iam_email (IAM-authenticated user, preferred for service accounts) OR user_name+password (built-in user). Idempotent on ALREADY_EXISTS.',
+  input_schema: {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      instance_name: { type: 'string', pattern: '^[a-z][a-z0-9-]{0,79}$' },
+      iam_email: { type: 'string', pattern: '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$', description: 'For IAM-authenticated users; auto-detects service accounts.' },
+      user_name: { type: 'string', pattern: '^[a-zA-Z_][a-zA-Z0-9_.-]{0,62}$' },
+      password: { type: 'string', minLength: 12, maxLength: 128, description: 'Required when user_name is used (no iam_email).' },
+    },
+    required: ['instance_name'],
+  },
+  side_effect: 'write',
+};
+
 export const ASK_USER: ToolSpec = {
   name: 'ask_user',
   description:
@@ -471,6 +523,9 @@ export const TOOL_REGISTRY: readonly ToolSpec[] = [
   BUDGET_CHECK,
   OAUTH_ADD_REDIRECT_URI,
   RUN_IN_BUILD_SANDBOX,
+  SQL_CREATE_INSTANCE,
+  SQL_CREATE_DATABASE,
+  SQL_CREATE_USER,
   ASK_USER,
 ] as const;
 

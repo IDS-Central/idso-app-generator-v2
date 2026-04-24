@@ -26,6 +26,7 @@ import { readBuildLogs, readCloudRunLogs } from './logs.js';
 import { planPresent, budgetCheck } from './plan.js';
 import { oauthAddRedirectUri } from './oauth.js';
 import { runInBuildSandbox } from './sandbox.js';
+import { sqlCreateInstance, sqlCreateDatabase, sqlCreateUser } from './sql.js';
 
 const HANDLERS: Record<string, ToolHandler<any, any>> = {
   bq_catalog_search: bqCatalogSearch,
@@ -47,6 +48,9 @@ const HANDLERS: Record<string, ToolHandler<any, any>> = {
   budget_check: budgetCheck,
   oauth_add_redirect_uri: oauthAddRedirectUri,
   run_in_build_sandbox: runInBuildSandbox,
+  sql_create_instance: sqlCreateInstance,
+  sql_create_database: sqlCreateDatabase,
+  sql_create_user: sqlCreateUser,
 };
 
 export async function dispatch(
