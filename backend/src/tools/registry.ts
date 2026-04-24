@@ -19,6 +19,7 @@ import { askUser } from './ask.js';
 import { iamCreateSa } from './iam.js';
 import { ghCreateRepo } from './github.js';
 import { cloudbuildCreateTrigger } from './cloudbuild.js';
+import { cloudBuildWait } from './build.js';
 import { cloudrunDeploy } from './cloudrun.js';
 import { secretCreate, secretAddVersion, secretAccess } from './secrets.js';
 import { listUserApps, writeOwnerFile } from './ownership.js';
@@ -37,6 +38,7 @@ const HANDLERS: Record<string, ToolHandler<any, any>> = {
   iam_create_sa: iamCreateSa,
   gh_create_repo: ghCreateRepo,
   cloudbuild_create_trigger: cloudbuildCreateTrigger,
+  cloud_build_wait: cloudBuildWait,
   cloudrun_deploy: cloudrunDeploy,
   secret_create: secretCreate,
   secret_add_version: secretAddVersion,

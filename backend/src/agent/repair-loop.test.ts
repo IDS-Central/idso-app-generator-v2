@@ -65,4 +65,7 @@ test('formatRepairPrompt includes build_id, attempt numbers, and log tail', () =
     attempt_num: 1,
     max_attempts: 3,
   });
-  assert
+  assert.match(text, /abc-123/);
+  assert.match(text, /attempt 1 of 3/);
+  assert.match(text, /Step #3: FAILURE/);
+});

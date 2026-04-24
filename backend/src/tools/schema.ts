@@ -535,6 +535,29 @@ export const ASK_USER: ToolSpec = {
 
 /* ---------- registry ---------- */
 
+export const CLOUD_BUILD_WAIT: ToolSpec = {
+  name: 'cloud_build_wait',
+  description:
+    'Poll a Cloud Build build_id until it reaches a terminal state (SUCCESS, FAILURE, INTERNAL_ERROR, TIMEOUT, CANCELLED, EXPIRED) or the client-side timeout elapses. Read-only: safe to call without approval.',
+  input_schema: {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      build_id: {
+        type: 'string',
+        description: 'Cloud Build build id to poll.',
+      },
+      timeout_sec: {
+        type: 'number',
+        description:
+          'Client-side polling timeout in seconds. Default 900 (15 min), hard ceiling 1800 (30 min).',
+      },
+    },
+    required: ['build_id'],
+  },
+  side_effect: 'read',
+};
+
 export const TOOL_REGISTRY: readonly ToolSpec[] = [
   BQ_CATALOG_SEARCH,
   BQ_DESCRIBE_TABLE,
@@ -560,6 +583,7 @@ export const TOOL_REGISTRY: readonly ToolSpec[] = [
   CLOUD_RUN_CURL_PROTECTED,
   CLOUD_RUN_CURL_HEALTH,
   ASK_USER,
+  CLOUD_BUILD_WAIT,
 ] as const;
 
 export type ToolName = (typeof TOOL_REGISTRY)[number]['name'];
