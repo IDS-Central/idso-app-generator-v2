@@ -719,7 +719,7 @@ After shipping cloudrun_deploy (edc9d0c), audited the codebase against docs/PHAS
 - [x] `backend/src/tools/secrets.ts`  `secret_create`, `secret_access`, `secret_add_version` via REST + ADC (152 LOC)
 - [x] `backend/src/tools/ownership.ts`  `list_user_apps` (Cloud Run v2 list, not BQ), `write_owner_file` (GitHub contents PUT) (155 LOC)
 - [x] `backend/src/tools/logs.ts`  `read_build_logs`, `read_cloud_run_logs` via Cloud Logging v2 entries.list (120 LOC)
-- [ ] `backend/src/tools/plan.ts`  `plan_present` and budget tools
+- [x] `backend/src/tools/plan.ts`  `plan_present` + `budget_check` (144 LOC); extended JsonSchema type with minItems/maxItems
 - [ ] `backend/src/tools/oauth.ts`  `oauth_add_redirect_uri` via GCP OAuth Brand / Client API
 - [ ] `backend/src/tools/sandbox.ts`  `run_in_build_sandbox` via Cloud Run Jobs
 - [ ] `backend/src/tools/sql.ts`  Cloud SQL Admin (instance create/describe, user create, database create)

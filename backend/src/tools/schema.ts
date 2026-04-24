@@ -37,6 +37,8 @@ export type JsonSchema = {
   maxLength?: number;
   pattern?: string;
   default?: unknown;
+  minItems?: number;
+  maxItems?: number;
 };
 
 export type ToolSideEffect = 'read' | 'write';
@@ -341,6 +343,55 @@ export const READ_CLOUD_RUN_LOGS: ToolSpec = {
   side_effect: 'read',
 };
 
+export const PLAN_PRESENT: ToolSpec = {
+  name: 'plan_present',
+  description:
+    'Present a structured build plan to the user for review. Returns a plan_id and a rendered markdown summary. This is a read-only surfacing tool; actual plan_approved gating happens out-of-band via /approve.',
+  input_schema: {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      app_name: { type: 'string', pattern: '^[a-z][a-z0-9-]{1,28}[a-z0-9]$' },
+      summary: { type: 'string', maxLength: 2000 },
+      steps: {
+        type: 'array',
+        minItems: 1,
+        maxItems: 50,
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            tool: { type: 'string', maxLength: 100 },
+            summary: { type: 'string', maxLength: 500 },
+            side_effect: { type: 'string', enum: ['read', 'write'] },
+          },
+          required: ['tool', 'summary', 'side_effect'],
+        },
+      },
+      estimated_monthly_cost_usd: { type: 'number', minimum: 0, maximum: 1000000 },
+      required_confirmations: { type: 'array', items: { type: 'string', maxLength: 200 }, maxItems: 20 },
+    },
+    required: ['app_name', 'steps'],
+  },
+  side_effect: 'read',
+};
+
+export const BUDGET_CHECK: ToolSpec = {
+  name: 'budget_check',
+  description:
+    'Best-effort month-to-date usage tally for an app_name, computed from the local builds table. Returns ok even when tally is unavailable (note field carries the reason).',
+  input_schema: {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      app_name: { type: 'string', pattern: '^[a-z][a-z0-9-]{1,28}[a-z0-9]$' },
+      month: { type: 'string', pattern: '^\\d{4}-\\d{2}$', description: 'YYYY-MM; defaults to current UTC month.' },
+    },
+    required: ['app_name'],
+  },
+  side_effect: 'read',
+};
+
 export const ASK_USER: ToolSpec = {
   name: 'ask_user',
   description:
@@ -379,6 +430,8 @@ export const TOOL_REGISTRY: readonly ToolSpec[] = [
   WRITE_OWNER_FILE,
   READ_BUILD_LOGS,
   READ_CLOUD_RUN_LOGS,
+  PLAN_PRESENT,
+  BUDGET_CHECK,
   ASK_USER,
 ] as const;
 

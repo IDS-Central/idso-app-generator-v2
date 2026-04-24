@@ -23,6 +23,7 @@ import { cloudrunDeploy } from './cloudrun.js';
 import { secretCreate, secretAddVersion, secretAccess } from './secrets.js';
 import { listUserApps, writeOwnerFile } from './ownership.js';
 import { readBuildLogs, readCloudRunLogs } from './logs.js';
+import { planPresent, budgetCheck } from './plan.js';
 
 const HANDLERS: Record<string, ToolHandler<any, any>> = {
   bq_catalog_search: bqCatalogSearch,
@@ -40,6 +41,8 @@ const HANDLERS: Record<string, ToolHandler<any, any>> = {
   write_owner_file: writeOwnerFile,
   read_build_logs: readBuildLogs,
   read_cloud_run_logs: readCloudRunLogs,
+  plan_present: planPresent,
+  budget_check: budgetCheck,
 };
 
 export async function dispatch(
