@@ -16,8 +16,19 @@ export const dynamic = 'force-dynamic';
 
 const STATE_COOKIE = 'idso_oauth_state';
 
+/**
+ * Build absolute URLs from IDSO_APP_URL. Required because behind Cloud Run
+ * `request.url` resolves to the container's internal 0.0.0.0:8080 address,
+ * which produces unreachable redirect targets.
+ */
+function publicUrl(path: string, request: NextRequest): URL {
+  const base = process.env.IDSO_APP_URL;
+  if (base) return new URL(path, base);
+  return new URL(path, request.url);
+}
+
 function errorRedirect(request: NextRequest, code: string): NextResponse {
-  const url = new URL('/login', request.url);
+  const url = publicUrl('/login', request);
   url.searchParams.set('error', code);
   const response = NextResponse.redirect(url, { status: 302 });
   response.cookies.delete(STATE_COOKIE);
@@ -33,6 +44,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   if (googleError) {
     return errorRedirect(request, `google_${googleError}`);
   }
+
   if (!code || !state) {
     return errorRedirect(request, 'missing_params');
   }
@@ -44,6 +56,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   try {
     const user = await exchangeCodeForUser(code);
+
     const now = Date.now();
     const cookieValue = encryptSession({
       email: user.email,
@@ -54,7 +67,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       expiresAt: now + SESSION_LIFETIME_MS,
     });
 
-    const dest = new URL('/', request.url);
+    const dest = publicUrl('/', request);
     const response = NextResponse.redirect(dest, { status: 302 });
     response.cookies.delete(STATE_COOKIE);
     response.cookies.set(SESSION_COOKIE_NAME, cookieValue, {
@@ -66,8 +79,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     });
     return response;
   } catch (err) {
-    const code = err instanceof AuthError ? err.code : 'exchange_failed';
-    console.error('OAuth authorize failure', { code, message: (err as Error).message });
-    return errorRedirect(request, code);
+    const errCode = err instanceof AuthError ? err.code : 'exchange_failed';
+    console.error('OAuth authorize failure', { code: errCode, message: (err as Error).message });
+    return errorRedirect(request, errCode);
   }
 }
