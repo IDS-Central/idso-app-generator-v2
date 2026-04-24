@@ -21,6 +21,7 @@ import { ghCreateRepo } from './github.js';
 import { cloudbuildCreateTrigger } from './cloudbuild.js';
 import { cloudrunDeploy } from './cloudrun.js';
 import { secretCreate, secretAddVersion, secretAccess } from './secrets.js';
+import { listUserApps, writeOwnerFile } from './ownership.js';
 
 const HANDLERS: Record<string, ToolHandler<any, any>> = {
   bq_catalog_search: bqCatalogSearch,
@@ -34,6 +35,8 @@ const HANDLERS: Record<string, ToolHandler<any, any>> = {
   secret_create: secretCreate,
   secret_add_version: secretAddVersion,
   secret_access: secretAccess,
+  list_user_apps: listUserApps,
+  write_owner_file: writeOwnerFile,
 };
 
 export async function dispatch(

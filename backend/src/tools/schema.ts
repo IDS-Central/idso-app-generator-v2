@@ -279,6 +279,35 @@ export const SECRET_ACCESS: ToolSpec = {
   side_effect: 'read',
 };
 
+export const LIST_USER_APPS: ToolSpec = {
+  name: 'list_user_apps',
+  description:
+    'List all idso-app-* Cloud Run services in the project. Returns app name, env (dev/prod), service name, URL, and latest ready revision for each.',
+  input_schema: {
+    type: 'object',
+    additionalProperties: false,
+    properties: {},
+  },
+  side_effect: 'read',
+};
+
+export const WRITE_OWNER_FILE: ToolSpec = {
+  name: 'write_owner_file',
+  description:
+    'Write or overwrite .idso/owner.json in the IDS-Central/idso-app-<app_name> GitHub repo. Records owner email and notes for provenance across sessions.',
+  input_schema: {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      app_name: { type: 'string', pattern: '^[a-z][a-z0-9-]{1,28}[a-z0-9]$' },
+      owner_email: { type: 'string', pattern: '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$', maxLength: 254 },
+      notes: { type: 'string', maxLength: 1000 },
+    },
+    required: ['app_name', 'owner_email'],
+  },
+  side_effect: 'write',
+};
+
 export const ASK_USER: ToolSpec = {
   name: 'ask_user',
   description:
@@ -313,6 +342,8 @@ export const TOOL_REGISTRY: readonly ToolSpec[] = [
   SECRET_CREATE,
   SECRET_ADD_VERSION,
   SECRET_ACCESS,
+  LIST_USER_APPS,
+  WRITE_OWNER_FILE,
   ASK_USER,
 ] as const;
 

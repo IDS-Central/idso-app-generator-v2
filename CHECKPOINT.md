@@ -717,7 +717,7 @@ After shipping cloudrun_deploy (edc9d0c), audited the codebase against docs/PHAS
 
 ### Tool files to implement (plan #3)
 - [x] `backend/src/tools/secrets.ts`  `secret_create`, `secret_access`, `secret_add_version` via REST + ADC (152 LOC)
-- [ ] `backend/src/tools/ownership.ts`  `list_user_apps` (BigQuery read), `write_owner_file`
+- [x] `backend/src/tools/ownership.ts`  `list_user_apps` (Cloud Run v2 list, not BQ), `write_owner_file` (GitHub contents PUT) (155 LOC)
 - [ ] `backend/src/tools/logs.ts`  `read_build_logs`, `read_cloud_run_logs` via Cloud Logging
 - [ ] `backend/src/tools/plan.ts`  `plan_present` and budget tools
 - [ ] `backend/src/tools/oauth.ts`  `oauth_add_redirect_uri` via GCP OAuth Brand / Client API
