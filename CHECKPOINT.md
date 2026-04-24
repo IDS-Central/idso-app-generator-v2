@@ -1026,3 +1026,37 @@ Status: DONE. tsc --noEmit exits 0, npm run build succeeds.
 6. Register https://<run-url>/api/auth/authorize as an authorized redirect URI on the shared OAuth client
 7. Redeploy with IDSO_APP_URL set to the Run URL (second build)
 8. Smoke test: curl /api/health -> 200, curl /api/auth/me -> 401, curl /login -> 200, browser login flow
+
+## Phase 3 - Milestone 3.1 Step 3: provisioning + first deploy (DONE)
+
+### Cloud resources created
+- Runtime SA: idso-app-generator-v2-frontend@reconciliation-dashboard.iam.gserviceaccount.com
+- Secret: idso-app-generator-v2-frontend-secret-key (48-byte base64 SECRET_KEY)
+- IAM: SA granted roles/secretmanager.secretAccessor on oauth-client-id, oauth-client-secret, idso-app-generator-v2-frontend-secret-key
+- IAM: SA granted roles/logging.logWriter at project level
+
+### Build fixes applied
+- cloudbuild.yaml: renamed SHORT_SHA -> _SHORT_SHA ($SHORT_SHA only populated by Git trigger, not manual submit)
+- cloudbuild.yaml: removed 'dir: frontend' since we submit with 'frontend' as source root
+- Created empty frontend/public/ with .gitkeep (Dockerfile COPY expects it)
+- Commit: 0ea127e fix(frontend): cloudbuild subs + public/ dir for Dockerfile COPY
+
+### Cloud Run service deployed
+- Service: idso-app-generator-v2-frontend-dev (us-central1)
+- URL: https://idso-app-generator-v2-frontend-dev-ne5jp3kqbq-uc.a.run.app
+- Image tag: 0ea127e (latest)
+- Port: 8080  SA: idso-app-generator-v2-frontend
+- First build: APP_URL=https://placeholder.example.com (2m35s)
+- Second build: APP_URL=https://idso-app-generator-v2-frontend-dev-ne5jp3kqbq-uc.a.run.app (2m23s)
+
+### Smoke tests (after redeploy with real APP_URL)
+- GET /api/health -> 200 OK (public liveness)
+- GET /api/auth/me  -> 401 Unauthorized (no session)
+- GET /            -> 302 Redirect (middleware -> /login)
+- GET /login       -> 200 OK (login page renders)
+
+### Next: register OAuth redirect URI (needs review)
+- The shared OAuth client (oauth-client-id) must have this redirect URI added:
+  https://idso-app-generator-v2-frontend-dev-ne5jp3kqbq-uc.a.run.app/api/auth/authorize
+- This is manual (GCP Console -> APIs & Services -> Credentials -> shared OAuth 2.0 Client ID -> Authorized redirect URIs)
+- Without this, end-to-end OAuth sign-in will fail with redirect_uri_mismatch
