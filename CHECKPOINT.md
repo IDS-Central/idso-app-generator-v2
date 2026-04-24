@@ -1162,3 +1162,48 @@ No Cloud Build trigger is wired to IDS-Central/idso-app-generator-v2, so pushing
 - Fix approveTurn contract mismatch (see above).
 - Streaming tool-call progress indicators tied to actual "tool" role events once backend emits them.
 - End-to-end login verification in the browser against the redeployed dev frontend.
+
+---
+
+## 2026-04-24  Milestone 3.3 deploy + login-loop investigation
+
+### Dev frontend deploy (Milestone 3.3)
+- Build 143cd685-1b5c-4d62-b75a-a883f9e7bfb4: SUCCESS (~3m 4s).
+- New Cloud Run revision: idso-app-generator-v2-frontend-dev-00006-tck (100% traffic).
+- Smoke test: GET /login -> 200.
+- Commits deployed: cc98a4a (sidebar/sessions/progress) + 1638f09 (IDSO_APP_URL OAuth redirect fix) + f13db1d (checkpoint 3.3).
+
+### Login-loop bug (blocker for 3.4 end-to-end test)
+Symptom: Click "Continue with Google" -> log in -> bounced straight back to /login?next=%2F. Continuous loop.
+
+Cloud Run log pattern (rev 00006-tck, multiple attempts):
+  1. GET 302 /api/auth/authorize?state=...&code=...  (OAuth callback succeeds)
+  2. GET 302 /login?next=%2F                        (immediate bounce, no intervening request to /)
+  3. GET 200 /login?next=%2F                        (login page re-renders)
+
+No "OAuth authorize failure" log emitted -- so the authorize Node handler did NOT hit its catch/errorRedirect path. That means authorize returned 302 to / with a Set-Cookie, but the next request to / was matched by middleware, which couldn't validate the session -> redirected to /login?next=%2F (the exact URL shape middleware.ts produces).
+
+Deployed env on 00006-tck (verified):
+  - IDSO_APP_URL=https://idso-app-generator-v2-frontend-dev-ne5jp3kqbq-uc.a.run.app
+  - IDSO_BACKEND_URL=https://idso-app-generator-v2-backend-dev-ne5jp3kqbq-uc.a.run.app
+  - IDSO_ALLOWED_DOMAIN=independencedso.com
+  - SECRET_KEY from Secret Manager secret "idso-app-generator-v2-frontend-secret-key:latest"
+  - NODE_ENV=production
+
+OAuth client (verified):
+  - IDSO Access client 142054839786-2l96g18niql6odruarf72vg3256tsl8r
+  - Redirect URI #3 = https://idso-app-generator-v2-frontend-dev-ne5jp3kqbq-uc.a.run.app/api/auth/authorize registered.
+
+Most-likely root causes (ranked):
+  1. Session cookie >4KB because it stores the full Google idToken JWT -> Chrome silently drops it -> middleware sees no cookie.
+  2. Edge runtime can't read SECRET_KEY at middleware request time (runtime injection mismatch).
+  3. decryptSessionEdge throws on a decode/crypto boundary (Web Crypto vs node:crypto symmetry bug).
+
+Next step (chosen): Add one-line instrumentation to middleware.ts and authorize/route.ts logging (a) whether session cookie is present on middleware entry, (b) its length, (c) decryption outcome. Deploy, reproduce login, read logs, pick a definitive fix in a single follow-up cycle.
+
+### Deferred (still)
+- approveTurn contract mismatch (frontend sends turnNumber+approved; backend expects tool_use_id+decision). Approve/reject buttons in ChatPage are non-functional until fixed. Milestone 3.4 scope.
+- Phase 2 supply-chain smoke test (exit criterion #2).
+- 4 orphaned test repos in IDS-Central: idso-app-smoke-cb-1/2/3, idso-app-smoke-cd-1.
+- Prod frontend Cloud Run service (idso-app-generator-v2-frontend-prod) not yet created.
+- Streaming tool-call progress indicators tied to actual "tool" role events.
