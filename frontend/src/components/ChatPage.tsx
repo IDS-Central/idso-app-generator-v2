@@ -311,6 +311,32 @@ export default function ChatPage({ userEmail }: Props) {
   );
 }
 
+function renderTurnContent(turn: Turn): string {
+  const c = turn.content as unknown;
+  if (c == null) return '';
+  if (typeof c === 'string') return c;
+  if (Array.isArray(c)) {
+    return c
+      .map((block) => {
+        if (typeof block === 'string') return block;
+        if (block && typeof block === 'object') {
+          const b = block as { type?: string; text?: string; output?: string };
+          if (typeof b.text === 'string') return b.text;
+          if (typeof b.output === 'string') return b.output;
+          return JSON.stringify(block);
+        }
+        return String(block);
+      })
+      .join('\n');
+  }
+  if (typeof c === 'object') {
+    const o = c as { is_error?: boolean; output?: unknown; tool_use_id?: string };
+    const body = typeof o.output === 'string' ? o.output : JSON.stringify(o.output ?? o);
+    return o.is_error ? `[error] ${body}` : body;
+  }
+  return String(c);
+}
+
 function TurnBubble({
   turn,
   onApprove,
@@ -328,7 +354,7 @@ function TurnBubble({
   return (
     <div className={`flex flex-col ${align}`}>
       <div className={`max-w-[80%] rounded-xl px-4 py-3 text-sm whitespace-pre-wrap ${bg}`}>
-        {turn.content}
+        {renderTurnContent(turn)}
       </div>
       {turn.pendingApproval && (
         <div className="mt-2 flex gap-2">
