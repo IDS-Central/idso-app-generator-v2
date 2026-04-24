@@ -1083,3 +1083,26 @@ Earlier grep missed the /v1 prefix. The actual backend chat routes are:
 4. Replace authenticated / landing page with chat UI: message list, input box, suggestion chips, approve button
 5. Use EventSource in the browser for live updates (no polling needed)
 6. Suggestion chips: 'Build a KPI dashboard that tracks doctor production over time', 'Build a patient feedback form'
+
+## Phase 3 - Milestone 3.2: chat UI (DONE)
+
+### Files added
+- frontend/src/components/ChatPage.tsx (client component ~190 lines): turns list, suggestion chips, input box, approve/reject buttons, EventSource for SSE
+- frontend/src/app/api/chat/sessions/route.ts (POST -> backend /v1/chat/sessions)
+- frontend/src/app/api/chat/[sessionId]/turn/route.ts (POST -> backend /v1/chat/:id/turn)
+- frontend/src/app/api/chat/[sessionId]/approve/route.ts (POST -> backend /v1/chat/:id/approve)
+- frontend/src/app/api/chat/[sessionId]/stream/route.ts (GET -> proxies backend SSE with Bearer auth via buildStreamRequest)
+
+### Files modified
+- frontend/src/lib/backend.ts: added startSession, sendTurn, approveTurn, buildStreamRequest + exported backendBaseUrl & getIdToken
+- frontend/src/app/page.tsx: replaced placeholder with <ChatPage userEmail={session.email} />
+
+### Verification
+- tsc --noEmit: clean
+- npm run build: 10 dynamic routes + /login, 87.2 kB First Load JS, 27 kB middleware
+- Cloud Build SHA=b16bdf2 -> STATUS: SUCCESS (2m23s)
+- GET / (unauth) -> 302 /login?next=%2F (confirmed in browser)
+
+### Deferred
+- Session list sidebar (requires backend GET /v1/chat/sessions endpoint - to be added in 3.3)
+- Streaming tool-call progress indicators (will surface automatically once backend emits turn events with role='tool')
