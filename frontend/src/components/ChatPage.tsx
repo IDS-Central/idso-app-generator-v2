@@ -8,6 +8,7 @@ interface Turn {
   content: string;
   toolCalls?: unknown[];
   pendingApproval?: boolean;
+  toolUseId?: string;
 }
 
 interface SessionSummary {
@@ -155,6 +156,42 @@ export default function ChatPage({ userEmail }: Props) {
         });
         if (!resp.ok) {
           setError(`Turn failed (${resp.status})`);
+        } else {
+          // If LoopResult.status==='awaiting_approval', flag the matching
+          // assistant turn so the approve/reject buttons appear.
+          try {
+            const result = (await resp.json()) as {
+              status?: 'completed' | 'awaiting_approval' | 'error';
+              turnNumber?: number;
+              tool_use_id?: string;
+            };
+            if (result.status === 'awaiting_approval' && result.tool_use_id) {
+              const toolUseId = result.tool_use_id;
+              const targetTurn = result.turnNumber;
+              setTurns((prev) => {
+                let idx = -1;
+                if (typeof targetTurn === 'number') {
+                  idx = prev.findIndex(
+                    (t) => t.turnNumber === targetTurn && t.role === 'assistant',
+                  );
+                }
+                if (idx < 0) {
+                  for (let i = prev.length - 1; i >= 0; i -= 1) {
+                    if (prev[i].role === 'assistant') {
+                      idx = i;
+                      break;
+                    }
+                  }
+                }
+                if (idx < 0) return prev;
+                const next = prev.slice();
+                next[idx] = { ...next[idx], pendingApproval: true, toolUseId };
+                return next;
+              });
+            }
+          } catch {
+            /* non-JSON response; ignore */
+          }
         }
         void refreshSessions();
       } finally {
@@ -165,15 +202,30 @@ export default function ChatPage({ userEmail }: Props) {
   );
 
   const approve = useCallback(
-    async (turnNumber: number, approved: boolean) => {
-      if (!sessionId) return;
-      await fetch(`/api/chat/${encodeURIComponent(sessionId)}/approve`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ turnNumber, approved }),
-      });
+    async (toolUseId: string, decision: 'approve' | 'reject', note?: string) => {
+      if (!sessionId || !toolUseId) return;
+      const resp = await fetch(
+        `/api/chat/${encodeURIComponent(sessionId)}/approve`,
+        {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ toolUseId, decision, note }),
+        },
+      );
+      if (!resp.ok) {
+        setError(`Approve failed (${resp.status})`);
+        return;
+      }
+      setTurns((prev) =>
+        prev.map((t) =>
+          t.toolUseId === toolUseId
+            ? { ...t, pendingApproval: false }
+            : t,
+        ),
+      );
+      void refreshSessions();
     },
-    [sessionId],
+    [sessionId, refreshSessions],
   );
 
   return (
@@ -342,7 +394,10 @@ function TurnBubble({
   onApprove,
 }: {
   turn: Turn;
-  onApprove: (turnNumber: number, approved: boolean) => void;
+  onApprove: (
+    toolUseId: string,
+    decision: 'approve' | 'reject',
+  ) => void;
 }) {
   const align = turn.role === 'user' ? 'items-end' : 'items-start';
   const bg =
@@ -359,13 +414,13 @@ function TurnBubble({
       {turn.pendingApproval && (
         <div className="mt-2 flex gap-2">
           <button
-            onClick={() => onApprove(turn.turnNumber, true)}
+            onClick={() => turn.toolUseId && onApprove(turn.toolUseId, 'approve')}
             className="rounded-md bg-emerald-600 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-700"
           >
             Approve
           </button>
           <button
-            onClick={() => onApprove(turn.turnNumber, false)}
+            onClick={() => turn.toolUseId && onApprove(turn.toolUseId, 'reject')}
             className="rounded-md border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100"
           >
             Reject

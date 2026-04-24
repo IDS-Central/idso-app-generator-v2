@@ -77,17 +77,28 @@ export interface StartSessionResponse {
   sessionId: string;
 }
 
+/**
+ * LoopResult returned by POST /v1/chat/:sessionId/turn.
+ * Backend is sync: status reflects final state of this turn.
+ * When status==='awaiting_approval', tool_use_id identifies the pending tool call.
+ */
 export interface TurnResponse {
-  turnNumber: number;
-  role: 'assistant';
-  content: string;
+  status: 'completed' | 'awaiting_approval' | 'error';
+  turnNumber?: number;
+  role?: 'assistant';
+  content?: unknown;
   toolCalls?: unknown[];
+  tool_use_id?: string;
   pendingApproval?: boolean;
+  error?: string;
 }
 
 export interface ApproveResponse {
-  ok: true;
-  turnNumber: number;
+  status: 'completed' | 'awaiting_approval' | 'error';
+  turnNumber?: number;
+  tool_use_id?: string;
+  content?: unknown;
+  error?: string;
 }
 
 export async function startSession(body: { title?: string } = {}): Promise<StartSessionResponse> {
@@ -109,11 +120,15 @@ export async function sendTurn(
 
 export async function approveTurn(
   sessionId: string,
-  body: { turnNumber: number; approved: boolean } = { turnNumber: 0, approved: true },
+  body: { toolUseId: string; decision: 'approve' | 'reject'; note?: string },
 ): Promise<ApproveResponse> {
   return backendFetch<ApproveResponse>(`/v1/chat/${encodeURIComponent(sessionId)}/approve`, {
     method: 'POST',
-    body: JSON.stringify(body),
+    body: JSON.stringify({
+      tool_use_id: body.toolUseId,
+      decision: body.decision,
+      note: body.note,
+    }),
   });
 }
 

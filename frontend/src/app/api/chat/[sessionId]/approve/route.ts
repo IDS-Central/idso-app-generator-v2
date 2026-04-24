@@ -9,12 +9,20 @@ export async function POST(
 ) {
   try {
     const body = (await req.json().catch(() => ({}))) as {
-      turnNumber?: number;
-      approved?: boolean;
+      toolUseId?: string;
+      decision?: 'approve' | 'reject';
+      note?: string;
     };
+    if (!body.toolUseId || (body.decision !== 'approve' && body.decision !== 'reject')) {
+      return NextResponse.json(
+        { error: 'toolUseId and decision ("approve"|"reject") are required' },
+        { status: 400 },
+      );
+    }
     const result = await approveTurn(params.sessionId, {
-      turnNumber: body.turnNumber ?? 0,
-      approved: body.approved ?? true,
+      toolUseId: body.toolUseId,
+      decision: body.decision,
+      note: body.note,
     });
     return NextResponse.json(result);
   } catch (err: unknown) {
