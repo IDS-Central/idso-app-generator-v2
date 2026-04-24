@@ -223,6 +223,62 @@ export const CLOUDRUN_DEPLOY: ToolSpec = {
   side_effect: 'write',
 };
 
+export const SECRET_CREATE: ToolSpec = {
+  name: 'secret_create',
+  description:
+    'Create a Secret Manager secret in reconciliation-dashboard with automatic replication. Idempotent on ALREADY_EXISTS. If initial_value is provided, also adds an initial version.',
+  input_schema: {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      secret_id: {
+        type: 'string',
+        description: 'Secret ID (letters, digits, _ and - allowed). Becomes projects/PROJECT/secrets/<id>.',
+        pattern: '^[a-zA-Z_][a-zA-Z0-9_-]{0,254}$',
+      },
+      initial_value: {
+        type: 'string',
+        description: 'Optional UTF-8 plaintext to store as the first version.',
+        maxLength: 65536,
+      },
+    },
+    required: ['secret_id'],
+  },
+  side_effect: 'write',
+};
+
+export const SECRET_ADD_VERSION: ToolSpec = {
+  name: 'secret_add_version',
+  description:
+    'Add a new version (UTF-8 plaintext payload) to an existing Secret Manager secret.',
+  input_schema: {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      secret_id: { type: 'string', pattern: '^[a-zA-Z_][a-zA-Z0-9_-]{0,254}$' },
+      value: { type: 'string', minLength: 1, maxLength: 65536 },
+    },
+    required: ['secret_id', 'value'],
+  },
+  side_effect: 'write',
+};
+
+export const SECRET_ACCESS: ToolSpec = {
+  name: 'secret_access',
+  description:
+    'Access the payload of a Secret Manager secret version. Default version is "latest".',
+  input_schema: {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      secret_id: { type: 'string', pattern: '^[a-zA-Z_][a-zA-Z0-9_-]{0,254}$' },
+      version: { type: 'string', description: 'Version id or "latest". Defaults to "latest".' },
+    },
+    required: ['secret_id'],
+  },
+  side_effect: 'read',
+};
+
 export const ASK_USER: ToolSpec = {
   name: 'ask_user',
   description:
@@ -254,6 +310,9 @@ export const TOOL_REGISTRY: readonly ToolSpec[] = [
   GH_CREATE_REPO,
   CLOUDBUILD_CREATE_TRIGGER,
   CLOUDRUN_DEPLOY,
+  SECRET_CREATE,
+  SECRET_ADD_VERSION,
+  SECRET_ACCESS,
   ASK_USER,
 ] as const;
 

@@ -716,7 +716,7 @@ After shipping cloudrun_deploy (edc9d0c), audited the codebase against docs/PHAS
 - ask_user, bq_catalog_search, bq_describe_table, bq_dry_run, cloudbuild_create_trigger, cloudrun_deploy, gh_create_repo, iam_create_sa
 
 ### Tool files to implement (plan #3)
-- [ ] `backend/src/tools/secrets.ts`  `secret_create`, `secret_access`, `secret_add_version` via @google-cloud/secret-manager
+- [x] `backend/src/tools/secrets.ts`  `secret_create`, `secret_access`, `secret_add_version` via REST + ADC (152 LOC)
 - [ ] `backend/src/tools/ownership.ts`  `list_user_apps` (BigQuery read), `write_owner_file`
 - [ ] `backend/src/tools/logs.ts`  `read_build_logs`, `read_cloud_run_logs` via Cloud Logging
 - [ ] `backend/src/tools/plan.ts`  `plan_present` and budget tools

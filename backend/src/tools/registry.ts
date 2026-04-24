@@ -20,6 +20,7 @@ import { iamCreateSa } from './iam.js';
 import { ghCreateRepo } from './github.js';
 import { cloudbuildCreateTrigger } from './cloudbuild.js';
 import { cloudrunDeploy } from './cloudrun.js';
+import { secretCreate, secretAddVersion, secretAccess } from './secrets.js';
 
 const HANDLERS: Record<string, ToolHandler<any, any>> = {
   bq_catalog_search: bqCatalogSearch,
@@ -30,6 +31,9 @@ const HANDLERS: Record<string, ToolHandler<any, any>> = {
   gh_create_repo: ghCreateRepo,
   cloudbuild_create_trigger: cloudbuildCreateTrigger,
   cloudrun_deploy: cloudrunDeploy,
+  secret_create: secretCreate,
+  secret_add_version: secretAddVersion,
+  secret_access: secretAccess,
 };
 
 export async function dispatch(
