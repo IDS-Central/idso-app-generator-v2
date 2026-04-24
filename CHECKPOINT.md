@@ -1354,3 +1354,38 @@ Frontend currently sends `{ turnNumber, approved }` but backend expects `{ tool_
 2. `frontend/src/app/api/chat/[sessionId]/approve/route.ts`  forward the new body shape.
 3. `frontend/src/components/ChatPage.tsx`  use the helper, capture `tool_use_id` from POST `/turn` response, set `pendingApproval=true` on the matching turn, thread `toolUseId` through `TurnBubble` callbacks.
 
+## 2026-04-24  Milestone 3.4 approveTurn contract fix shipped (rev 00011)
+
+- Commit `f6ba444` deployed as rev `idso-app-generator-v2-frontend-dev-00011-s4k` (100% traffic).
+- Build `92fcaab2-5d21-44ed-ba21-c0507819ff53` SUCCESS in 2m19s.
+- Image: `us-central1-docker.pkg.dev/reconciliation-dashboard/idso-apps/idso-app-generator-v2-frontend:f6ba444`.
+
+### What changed
+
+Three files, 100 insertions / 22 deletions:
+
+1. `frontend/src/lib/backend.ts`
+   - `TurnResponse` now mirrors backend `LoopResult`: `{ status: 'completed' | 'awaiting_approval' | 'error', turnNumber?, role?, content?, toolCalls?, tool_use_id?, pendingApproval?, error? }`.
+   - `ApproveResponse` likewise `{ status, turnNumber?, tool_use_id?, content?, error? }`.
+   - `approveTurn(sessionId, { toolUseId, decision, note? })` POSTs `{ tool_use_id, decision, note }` to `/v1/chat/:sid/approve`.
+
+2. `frontend/src/app/api/chat/[sessionId]/approve/route.ts`
+   - Proxy accepts `{ toolUseId, decision: 'approve'|'reject', note? }` and 400s if either `toolUseId` or `decision` is missing/invalid before forwarding to `approveTurn`.
+
+3. `frontend/src/components/ChatPage.tsx`
+   - `Turn` interface gained `toolUseId?: string`.
+   - `submit()` now parses the POST `/turn` response and, when `status==='awaiting_approval'`, finds the matching assistant turn (by `turnNumber` if provided, else the most recent) and sets `pendingApproval: true` + `toolUseId`.
+   - `approve` callback rewritten to `(toolUseId, decision, note?)`; clears `pendingApproval` on success and refreshes the sessions list.
+   - `TurnBubble` signature updated; internal Approve/Reject onClick handlers pass `turn.toolUseId` through to `onApprove`.
+
+### Verification status
+
+- `npx tsc --noEmit` green before commit.
+- Awaiting user smoke test of end-to-end approve/reject path. Prior deploy `8ea35c1` / rev `00010` already verified React #31 crash fixed for non-approval turns.
+
+### Remaining / deferred
+
+- Phase 2 supply-chain smoke test.
+- Delete 4 orphaned smoke repos (idso-app-smoke-cb-1/2/3, idso-app-smoke-cd-1).
+- Create prod frontend Cloud Run service (dev is in place).
+
