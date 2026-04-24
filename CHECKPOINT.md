@@ -944,3 +944,43 @@ Findings captured before scaffolding frontend/:
   - oauth-client-id
   - oauth-client-secret
 - Redirect URI to register in GCP OAuth consent screen: https://<frontend-run-url>/api/auth/callback/google
+
+## Milestone 3.1 Step 1: Next.js scaffold + auth libs (commit 4d5d62f)
+
+Status: DONE. tsc --noEmit exits 0.
+
+### Decisions made this step
+- Auth pattern switched from NextAuth v5 to google-auth-library per IDSO conventions (docs/IDSO-APP-CONVENTIONS.md).
+- Frontend service name: idso-app-generator-v2-frontend-dev (matches backend naming).
+- Streaming: poll GET /chat/:sessionId; SSE addition to backend deferred.
+- Cookie format: base64url(iv[12] || authTag[16] || ciphertext), AES-256-GCM, key = SHA-256(SECRET_KEY).
+- Two crypto modules: session.ts (Node, for route handlers) + session-edge.ts (Web Crypto, for middleware).
+- Secret names in Secret Manager (verified via gcloud secrets list): oauth-client-id, oauth-client-secret (no idso- prefix, despite conventions doc).
+
+### Files created (19 total)
+- frontend/ scaffolded by create-next-app@14 (TS, Tailwind, App Router, src/ layout)
+- frontend/src/lib/secrets.ts (39 lines) - Secret Manager with 5-min TTL cache
+- frontend/src/lib/session.ts (65 lines) - AES-256-GCM encrypt/decrypt (Node)
+- frontend/src/lib/session-edge.ts (61 lines) - Web Crypto decrypt (Edge)
+- frontend/src/lib/auth.ts (104 lines) - OAuth URL, code exchange, ID token validation
+- frontend/README.plan.md - original pre-existing frontend plan
+
+### Dependencies added
+- google-auth-library@^10
+- @google-cloud/secret-manager (latest)
+
+### Next (Milestone 3.1 step 2)
+1. src/app/api/auth/login/route.ts - generates state, sets state cookie, redirects to Google
+2. src/app/api/auth/authorize/route.ts - verifies state, exchanges code, sets idso_session cookie, redirects to /
+3. src/app/api/auth/logout/route.ts - clears cookie, redirects to /login
+4. src/app/api/auth/me/route.ts - returns { email, name, picture } from session cookie
+5. src/middleware.ts - enforces auth on all routes except public list (/login, /api/auth/*, /api/health)
+6. src/app/login/page.tsx - basic login page with Google sign-in button
+7. src/app/page.tsx - authenticated landing (placeholder until Milestone 3.2 chat UI)
+8. src/lib/backend.ts - typed fetch client that forwards Authorization: Bearer <idToken>
+9. Dockerfile (node:20-alpine multi-stage, port 8080, standalone output)
+10. cloudbuild.yaml (builds + deploys to idso-app-generator-v2-frontend-dev)
+11. next.config.mjs: add output: 'standalone'
+12. Create frontend SA, SECRET_KEY secret, wire Secret Manager bindings
+13. Register redirect URI with shared OAuth client
+14. First deploy to dev + smoke test (curl /api/auth/me -> 401, then /login -> 200)
