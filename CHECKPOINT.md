@@ -1207,3 +1207,71 @@ Next step (chosen): Add one-line instrumentation to middleware.ts and authorize/
 - 4 orphaned test repos in IDS-Central: idso-app-smoke-cb-1/2/3, idso-app-smoke-cd-1.
 - Prod frontend Cloud Run service (idso-app-generator-v2-frontend-prod) not yet created.
 - Streaming tool-call progress indicators tied to actual "tool" role events.
+
+---
+
+## 2026-04-24  Login-loop root cause + fix (AES-GCM layout mismatch)
+
+### Diagnosis (revision 00007-s5p with instrumentation)
+Added diagnostic `console.log` to `frontend/src/app/api/auth/authorize/route.ts` (just before `response.cookies.set`) and `frontend/src/middleware.ts` (just before the `/login` redirect). One reproduction round-trip produced two JSON log lines that pinpointed the bug:
+
+```
+authorize_set_cookie: { cookie_len: 1924, email: "nghia@...", redirect_to: ".../", secret_key_len: 65, secret_key_set: true }
+mw_bounce:            { cookie_len: 1924, cookie_present: true, decrypt_err: null, path: "/", secret_key_len: 65, secret_key_set: true, session_null_reason: "returned_null" }
+```
+
+Rules out:
+- Oversize cookie (1924 B, well under 4 KB).
+- Missing SECRET_KEY in edge runtime (`secret_key_set: true`, same length on both sides).
+- Thrown exception during decrypt (`decrypt_err: null`).
+
+Points directly at: `decryptSessionEdge` ran to completion but returned `null`  i.e. Web Crypto's `AES-GCM` `decrypt()` threw an `OperationError` (auth-tag mismatch) that the function's internal `catch` swallowed and converted to `null`.
+
+### Root cause
+Byte layout mismatch between the two halves of the session codec.
+
+- `frontend/src/lib/session.ts` (Node, `encryptSession`) writes:
+  `iv || authTag || ciphertext` (auth tag appended after IV, via `Buffer.concat([iv, authTag, ciphertext])`).
+- `frontend/src/lib/session-edge.ts` (Edge, `decryptSessionEdge`) assumed:
+  `iv || ciphertext || authTag` (Web Crypto's expected input is `ciphertext || authTag`).
+
+So Edge handed Web Crypto the first (IV_LEN+TAG_LEN..end) bytes as "ciphertext||authTag", which meant Web Crypto interpreted the last 16 bytes of Node's actual ciphertext as the auth tag. Always a mismatch  always `null`.
+
+Node's own `decryptSession` uses `createDecipheriv` + `setAuthTag()` so it reads the fields out by offset and doesn't care about concatenation order  which is why the Node decrypt worked fine in tests and the bug only surfaced in Edge (middleware).
+
+### Fix (commit 5c889eb)
+`frontend/src/lib/session-edge.ts` now re-slices the cookie into the three fields explicitly and reassembles `ctAndTag = ciphertext || authTag` before calling `crypto.subtle.decrypt`:
+
+```ts
+const iv = buf.slice(0, IV_LEN);
+const authTag = buf.slice(IV_LEN, IV_LEN + TAG_LEN);
+const ciphertext = buf.slice(IV_LEN + TAG_LEN);
+const ctAndTag = new Uint8Array(ciphertext.length + authTag.length);
+ctAndTag.set(ciphertext, 0);
+ctAndTag.set(authTag, ciphertext.length);
+```
+
+Single file, +7 / -2. TypeScript clean.
+
+### Deploy
+- Build `c32d16fa-b56c-4adb-acc8-d75a63c2e147`: SUCCESS, ~2m43s.
+- Revision `idso-app-generator-v2-frontend-dev-00008-wtf`  100% traffic.
+- Image `us-central1-docker.pkg.dev/reconciliation-dashboard/idso-apps/idso-app-generator-v2-frontend:5c889eb`.
+
+### Still to do after user confirms login works
+1. Remove the two diagnostic `console.log` lines (`authorize_set_cookie`, `mw_bounce`)  they leak user email into Cloud Run logs on every request. Small PII concern, quick follow-up commit.
+2. Fix the `approveTurn` contract mismatch (frontend sends `{turnNumber, approved}`; backend expects `{tool_use_id, decision}`). First item of Milestone 3.4.
+3. End-to-end smoke test the chat UI: create session  send message  confirm SSE stream  verify sidebar lists the session on reload.
+
+---
+
+## Operational note for future sessions (Claude)
+
+**Screenshot-size best practice.** In past sessions Claude has taken full-viewport screenshots of the Google Cloud Console or GitHub that render > 2000 px wide and cause the agent to error/bug out mid-task. Going forward:
+
+- Prefer terminal-based inspection over screenshots: `grep`, `head`, `tail`, `git diff`, `gcloud ... --format=...` piped through `head -N`.
+- When a screenshot is unavoidable, use the `zoom` action with a small rectangular region (e.g. 800300) instead of a full-window `screenshot`.
+- The Cloud Shell terminal window at default size (~1215545) is safe  it's the Console/GitHub full-page views that blow up.
+- If an output is large, write to a `/tmp/` file and `cat` / `wc -l` / `tail` it rather than scrolling the terminal and screenshotting.
+
+This note applies to every future checkpoint-resume in this repo.
