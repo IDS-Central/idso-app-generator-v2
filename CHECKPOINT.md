@@ -1338,3 +1338,19 @@ The turn-submission path in ChatPage doesn't inspect the POST /turn response bod
 ### Also verified
 - `backend/src/` layout: agent loop is at `backend/src/agent/loop.ts` (not `backend/src/loop.ts` as previously guessed), session store at `backend/src/session/store.ts`.
 - The diagnostic-log removal (commit `dabe54e`, rev `00009-x8p`) is live and clean.
+
+## 2026-04-24  Milestone 3.4 crash fix VERIFIED (rev 00010)
+
+- Commit `8ea35c1` deployed as rev `00010-*`  user confirmed chat round-trip no longer white-screens after hard refresh.
+- `renderTurnContent()` helper in `ChatPage.tsx` safely coerces `turn.content` of any shape (string / array of blocks / object) into a renderable string, fixing the React #31 "objects are not valid as a React child" crash for role=`tool` turns.
+- End-to-end happy path (non-approval turns) now works; a prompt was processed successfully.
+
+### Next up in Milestone 3.4  approveTurn contract fix
+
+Backend is sync: `POST /v1/chat/:sessionId/turn` returns `LoopResult` with `status: 'completed' | 'awaiting_approval' | 'error'`. When `awaiting_approval`, the response body contains `tool_use_id`. GET `/stream` is replay-only.
+
+Frontend currently sends `{ turnNumber, approved }` but backend expects `{ tool_use_id, decision, note? }`  need to fix 3 files:
+1. `frontend/src/lib/backend.ts`  rename `approveTurn(sessionId, { toolUseId, decision, note? })` with body `{ tool_use_id, decision, note }`.
+2. `frontend/src/app/api/chat/[sessionId]/approve/route.ts`  forward the new body shape.
+3. `frontend/src/components/ChatPage.tsx`  use the helper, capture `tool_use_id` from POST `/turn` response, set `pendingApproval=true` on the matching turn, thread `toolUseId` through `TurnBubble` callbacks.
+
