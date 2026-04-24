@@ -126,3 +126,14 @@ export async function buildStreamRequest(
   const url = `${backendBaseUrl()}/v1/chat/${encodeURIComponent(sessionId)}/stream`;
   return { url, headers: { authorization: `Bearer ${idToken}`, accept: 'text/event-stream' } };
 }
+
+export interface SessionListItem {
+  sessionId: string;
+  title: string | null;
+  lastActivityAt: string;
+  createdAt: string;
+}
+
+export async function listSessions(limit = 50): Promise<{ sessions: SessionListItem[] }> {
+  return backendFetch<{ sessions: SessionListItem[] }>(`/v1/chat/sessions?limit=${limit}`);
+}

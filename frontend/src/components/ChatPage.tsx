@@ -10,6 +10,13 @@ interface Turn {
   pendingApproval?: boolean;
 }
 
+interface SessionSummary {
+  sessionId: string;
+  title: string | null;
+  lastActivityAt: string;
+  createdAt: string;
+}
+
 interface Props {
   userEmail: string;
 }
@@ -20,12 +27,31 @@ const SUGGESTIONS = [
   'Build a weekly production report for each office',
 ];
 
+function formatRelative(iso: string): string {
+  try {
+    const then = new Date(iso).getTime();
+    const now = Date.now();
+    const diff = Math.max(0, now - then);
+    const m = Math.floor(diff / 60_000);
+    if (m < 1) return 'just now';
+    if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `${h}h ago`;
+    const d = Math.floor(h / 24);
+    return `${d}d ago`;
+  } catch {
+    return '';
+  }
+}
+
 export default function ChatPage({ userEmail }: Props) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [turns, setTurns] = useState<Turn[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sessions, setSessions] = useState<SessionSummary[]>([]);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
   const esRef = useRef<EventSource | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -33,6 +59,25 @@ export default function ChatPage({ userEmail }: Props) {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [turns]);
+
+  // Load session list on mount + whenever we start a new session or finish a turn.
+  const refreshSessions = useCallback(async () => {
+    setSessionsLoading(true);
+    try {
+      const resp = await fetch('/api/chat/sessions', { cache: 'no-store' });
+      if (!resp.ok) return;
+      const body = (await resp.json()) as { sessions?: SessionSummary[] };
+      setSessions(Array.isArray(body.sessions) ? body.sessions : []);
+    } catch {
+      /* network hiccup; keep existing list */
+    } finally {
+      setSessionsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void refreshSessions();
+  }, [refreshSessions]);
 
   // Start or resume the SSE stream for the current session.
   useEffect(() => {
@@ -66,11 +111,22 @@ export default function ChatPage({ userEmail }: Props) {
       setError(`Could not start session (${resp.status})`);
       return null;
     }
-    const { sessionId: sid } = (await resp.json()) as { sessionId: string };
+    const body = (await resp.json()) as { sessionId?: string; session_id?: string };
+    const sid = body.sessionId ?? body.session_id ?? null;
+    if (sid) {
+      setSessionId(sid);
+      setTurns([]);
+      void refreshSessions();
+    }
+    return sid;
+  }, [refreshSessions]);
+
+  const switchSession = useCallback((sid: string) => {
+    if (sid === sessionId) return;
     setSessionId(sid);
     setTurns([]);
-    return sid;
-  }, []);
+    setError(null);
+  }, [sessionId]);
 
   const submit = useCallback(
     async (text: string) => {
@@ -80,6 +136,7 @@ export default function ChatPage({ userEmail }: Props) {
       try {
         const sid = sessionId ?? (await startNewSession());
         if (!sid) return;
+
         // Optimistic user turn (backend will send canonical via SSE).
         setTurns((prev) => [
           ...prev,
@@ -90,6 +147,7 @@ export default function ChatPage({ userEmail }: Props) {
           },
         ]);
         setInput('');
+
         const resp = await fetch(`/api/chat/${encodeURIComponent(sid)}/turn`, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
@@ -98,11 +156,12 @@ export default function ChatPage({ userEmail }: Props) {
         if (!resp.ok) {
           setError(`Turn failed (${resp.status})`);
         }
+        void refreshSessions();
       } finally {
         setSending(false);
       }
     },
-    [sessionId, sending, startNewSession],
+    [sessionId, sending, startNewSession, refreshSessions],
   );
 
   const approve = useCallback(
@@ -118,90 +177,136 @@ export default function ChatPage({ userEmail }: Props) {
   );
 
   return (
-    <div className="flex h-screen flex-col bg-slate-50">
-      <header className="flex items-center justify-between border-b bg-white px-6 py-3">
-        <div>
-          <h1 className="text-lg font-semibold text-slate-900">IDSO App Generator</h1>
-          <p className="text-xs text-slate-500">Signed in as {userEmail}</p>
-        </div>
-        <div className="flex gap-2">
+    <div className="flex h-screen bg-slate-50">
+      {/* Left sidebar: session list */}
+      <aside className="flex w-64 flex-col border-r bg-white">
+        <div className="flex items-center justify-between border-b px-4 py-3">
+          <div>
+            <h2 className="text-sm font-semibold text-slate-900">Chats</h2>
+            <p className="text-xs text-slate-500 truncate" title={userEmail}>{userEmail}</p>
+          </div>
           <button
             onClick={() => {
               setSessionId(null);
               setTurns([]);
             }}
-            className="rounded border border-slate-300 bg-white px-3 py-1 text-sm text-slate-700 hover:bg-slate-100"
+            className="rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700 hover:bg-slate-100"
+            title="Start a new chat"
           >
-            New chat
+            + New
           </button>
-          <a
-            href="/api/auth/logout"
-            className="rounded border border-slate-300 bg-white px-3 py-1 text-sm text-slate-700 hover:bg-slate-100"
-          >
-            Sign out
-          </a>
         </div>
-      </header>
+        <nav className="flex-1 overflow-y-auto">
+          {sessionsLoading && sessions.length === 0 ? (
+            <p className="px-4 py-3 text-xs text-slate-400">Loading...</p>
+          ) : sessions.length === 0 ? (
+            <p className="px-4 py-3 text-xs text-slate-400">No chats yet.</p>
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {sessions.map((s) => {
+                const active = s.sessionId === sessionId;
+                return (
+                  <li key={s.sessionId}>
+                    <button
+                      onClick={() => switchSession(s.sessionId)}
+                      className={`w-full px-4 py-3 text-left text-sm hover:bg-slate-50 ${active ? 'bg-slate-100 font-medium text-slate-900' : 'text-slate-700'}`}
+                    >
+                      <div className="truncate">{s.title ?? 'Untitled chat'}</div>
+                      <div className="mt-0.5 text-xs text-slate-400">{formatRelative(s.lastActivityAt)}</div>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </nav>
+        <a
+          href="/api/auth/logout"
+          className="border-t px-4 py-3 text-center text-xs text-slate-500 hover:bg-slate-50"
+        >
+          Sign out
+        </a>
+      </aside>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6">
-        {turns.length === 0 ? (
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-2xl font-semibold text-slate-800">What should we build?</h2>
-            <p className="mt-2 text-sm text-slate-500">
-              Describe an internal app in plain English. The generator can create dashboards, forms,
-              and reports backed by your data.
-            </p>
-            <div className="mt-6 grid gap-2">
-              {SUGGESTIONS.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => submit(s)}
-                  className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-left text-sm text-slate-700 shadow-sm hover:border-slate-300 hover:bg-slate-50"
-                >
-                  {s}
-                </button>
-              ))}
+      {/* Main column: chat */}
+      <main className="flex flex-1 flex-col">
+        <header className="flex items-center justify-between border-b bg-white px-6 py-3">
+          <h1 className="text-lg font-semibold text-slate-900">IDSO App Generator</h1>
+          {sending && (
+            <div className="flex items-center gap-2 text-xs text-slate-500">
+              <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+              Agent working...
             </div>
-          </div>
-        ) : (
-          <div className="mx-auto max-w-3xl space-y-4">
-            {turns.map((t) => (
-              <TurnBubble key={t.turnNumber} turn={t} onApprove={approve} />
-            ))}
+          )}
+        </header>
+
+        <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6">
+          {turns.length === 0 ? (
+            <div className="mx-auto max-w-2xl text-center">
+              <h2 className="text-2xl font-semibold text-slate-800">What should we build?</h2>
+              <p className="mt-2 text-sm text-slate-500">
+                Describe an internal app in plain English. The generator can create dashboards,
+                forms, and reports backed by your data.
+              </p>
+              <div className="mt-6 grid gap-2">
+                {SUGGESTIONS.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => submit(s)}
+                    className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-left text-sm text-slate-700 shadow-sm hover:border-slate-300 hover:bg-slate-50"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="mx-auto max-w-3xl space-y-4">
+              {turns.map((t) => (
+                <TurnBubble key={t.turnNumber} turn={t} onApprove={approve} />
+              ))}
+              {sending && (
+                <div className="flex items-start">
+                  <div className="max-w-[80%] rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-400">
+                    <span className="inline-block animate-pulse">Thinking...</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {error && (
+          <div className="border-t border-red-200 bg-red-50 px-6 py-2 text-sm text-red-700">
+            {error}
           </div>
         )}
-      </div>
 
-      {error && (
-        <div className="border-t border-red-200 bg-red-50 px-6 py-2 text-sm text-red-700">
-          {error}
-        </div>
-      )}
-
-      <form
-        className="border-t bg-white px-6 py-4"
-        onSubmit={(e) => {
-          e.preventDefault();
-          void submit(input);
-        }}
-      >
-        <div className="mx-auto flex max-w-3xl gap-2">
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Describe what to build..."
-            className="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm outline-none focus:border-slate-500"
-            disabled={sending}
-          />
-          <button
-            type="submit"
-            disabled={sending || !input.trim()}
-            className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:bg-slate-400"
-          >
-            Send
-          </button>
-        </div>
-      </form>
+        <form
+          className="border-t bg-white px-6 py-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void submit(input);
+          }}
+        >
+          <div className="mx-auto flex max-w-3xl gap-2">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Describe what to build..."
+              className="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm outline-none focus:border-slate-500"
+              disabled={sending}
+            />
+            <button
+              type="submit"
+              disabled={sending || !input.trim()}
+              className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:bg-slate-400"
+            >
+              Send
+            </button>
+          </div>
+        </form>
+      </main>
     </div>
   );
 }
@@ -218,8 +323,8 @@ function TurnBubble({
     turn.role === 'user'
       ? 'bg-slate-900 text-white'
       : turn.role === 'tool'
-      ? 'bg-amber-50 text-amber-900 border border-amber-200'
-      : 'bg-white text-slate-800 border border-slate-200';
+        ? 'bg-amber-50 text-amber-900 border border-amber-200'
+        : 'bg-white text-slate-800 border border-slate-200';
   return (
     <div className={`flex flex-col ${align}`}>
       <div className={`max-w-[80%] rounded-xl px-4 py-3 text-sm whitespace-pre-wrap ${bg}`}>
