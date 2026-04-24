@@ -481,6 +481,37 @@ export const SQL_CREATE_USER: ToolSpec = {
   side_effect: 'write',
 };
 
+export const CLOUD_RUN_CURL_PROTECTED: ToolSpec = {
+  name: 'cloud_run_curl_protected',
+  description:
+    'Hit a Cloud Run endpoint with no auth and assert it returns a specific status code (default 401). Post-deploy guard that confirms a protected route is actually protected. Fails loudly if the wrong status is returned.',
+  input_schema: {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      url: { type: 'string', pattern: '^https://[^\\s]{1,2048}$', description: 'Full https URL of the protected endpoint.' },
+      expected_status: { type: 'integer', minimum: 100, maximum: 599, default: 401 },
+    },
+    required: ['url'],
+  },
+  side_effect: 'read',
+};
+
+export const CLOUD_RUN_CURL_HEALTH: ToolSpec = {
+  name: 'cloud_run_curl_health',
+  description:
+    'Hit a Cloud Run /api/health endpoint and assert HTTP 200. Lightweight post-deploy smoke test.',
+  input_schema: {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      url: { type: 'string', pattern: '^https://[^\\s]{1,2048}$' },
+    },
+    required: ['url'],
+  },
+  side_effect: 'read',
+};
+
 export const ASK_USER: ToolSpec = {
   name: 'ask_user',
   description:
@@ -526,6 +557,8 @@ export const TOOL_REGISTRY: readonly ToolSpec[] = [
   SQL_CREATE_INSTANCE,
   SQL_CREATE_DATABASE,
   SQL_CREATE_USER,
+  CLOUD_RUN_CURL_PROTECTED,
+  CLOUD_RUN_CURL_HEALTH,
   ASK_USER,
 ] as const;
 

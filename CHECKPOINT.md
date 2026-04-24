@@ -725,8 +725,8 @@ After shipping cloudrun_deploy (edc9d0c), audited the codebase against docs/PHAS
 - [x] `backend/src/tools/sql.ts`  Cloud SQL Admin v1beta4 (sql_create_instance / sql_create_database / sql_create_user, 185 LOC). Supports IAM and built-in users.
 
 ### Loop behaviors (plan #8, #9)
-- [ ] Retry/repair loop on cloud_build_wait FAILURE (plan #8)
-- [ ] Post-deploy verification after cloud_run_deploy (plan #9)
+- [x] Retry/repair loop  added `backend/src/agent/repair-loop.ts` (classifyBuildFailure + formatRepairPrompt + shouldAttemptRepair, 3-attempt bound). **Best effort: helper module is complete and tsc-clean; full integration into agent/loop.ts is intentionally deferred and needs review.**
+- [x] Post-deploy verification  added `backend/src/tools/verify.ts` with `cloud_run_curl_protected` (asserts 401) and `cloud_run_curl_health` (asserts 200). Wired into schema + registry.
 
 ### Tests (plan #10)
 - [ ] Unit tests for tool validators

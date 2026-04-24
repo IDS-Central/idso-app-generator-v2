@@ -27,6 +27,7 @@ import { planPresent, budgetCheck } from './plan.js';
 import { oauthAddRedirectUri } from './oauth.js';
 import { runInBuildSandbox } from './sandbox.js';
 import { sqlCreateInstance, sqlCreateDatabase, sqlCreateUser } from './sql.js';
+import { cloudRunCurlProtected, cloudRunCurlHealth } from './verify.js';
 
 const HANDLERS: Record<string, ToolHandler<any, any>> = {
   bq_catalog_search: bqCatalogSearch,
@@ -51,6 +52,8 @@ const HANDLERS: Record<string, ToolHandler<any, any>> = {
   sql_create_instance: sqlCreateInstance,
   sql_create_database: sqlCreateDatabase,
   sql_create_user: sqlCreateUser,
+  cloud_run_curl_protected: cloudRunCurlProtected,
+  cloud_run_curl_health: cloudRunCurlHealth,
 };
 
 export async function dispatch(
