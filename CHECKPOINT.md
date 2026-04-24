@@ -775,3 +775,45 @@ All code work is done and pushed. CI will pick up `b3df995` and roll a new Cloud
 3. Decide whether to wire repair-loop into `agent/loop.ts` or ship Phase 2 as-is.
 4. Run the supply-chain smoke test (fresh app name, full plan  provision  deploy  curl health 200  curl protected 401  cleanup).
 5. If all green, declare Phase 2 complete and start Phase 3 (frontend  Next.js App Router).
+
+## Phase 2 follow-up session (2026-04-24, part 2)  BLOCKED on terminal paste
+
+User authorized Option A (close Phase 2 properly): wire repair-loop into agent/loop.ts, then run the supply-chain smoke test. Plus confirmed Phase 3 frontend will use Google OAuth 2.0 (creds already in Secret Manager) on a separate Cloud Run service.
+
+### What was discovered
+
+1. The repair-loop helper in backend/src/agent/repair-loop.ts was designed around a tool named `cloud_build_wait`, but that tool **does not exist in the registry**. It was never implemented. `cloudrun_deploy` fires the trigger and returns immediately with `{ build_id, status: QUEUED }`  there is no waiting primitive.
+
+2. To wire repair-loop coherently, `cloud_build_wait` must be implemented first as a new read tool that polls the Cloud Build API until the build reaches a terminal state (SUCCESS/FAILURE/TIMEOUT/CANCELLED/INTERNAL_ERROR/EXPIRED).
+
+### Roadblock hit: Cloud Shell terminal paste reliability
+
+Attempted to write the new files via heredocs from Claude's `type` tool into the Cloud Shell terminal. After the Cloud Shell session expired and was reauthenticated, heredocs of >3 content lines are silently dropped. Single-line commands work. Multi-line `type` payloads sometimes drop leading characters and sometimes drop entire line sequences. Session expiry during long pastes was the root cause of the initial silent failures; the ongoing reliability issue after re-auth is suspected to be terminal input-rate throttling.
+
+### Three files need to be pasted manually via Cloud Shell Editor
+
+Open Cloud Shell Editor (top-right button in the terminal panel), then create/replace these three files with the content shown below. Each file is committed to `phase2-pending/` as a placeholder so you can `git pull` and see the target location; the placeholder files are empty  paste the content from this checkpoint into them, save, then move them to their real destinations with the `mv` commands at the end.
+
+File 1 of 3: `backend/src/tools/build.ts` (NEW file, ~85 lines)  implements `cloud_build_wait` read tool.
+File 2 of 3: `backend/src/agent/loop.ts` (MODIFY existing file, 296 lines)  wire repair-loop on cloud_build_wait FAILURE.
+File 3 of 3: `backend/src/tests/repair-loop.test.ts` (NEW file, ~60 lines)  unit tests for classifyBuildFailure and shouldAttemptRepair.
+
+The three files listed above are also staged as empty placeholders in `phase2-pending/` so the paths are visible after `git pull`. The full content of each file is provided in the chat session where this checkpoint was written (see assistant message dated 2026-04-24 that begins "put the 3 files into the git repo").
+
+### Steps to resume (next session or manual)
+
+1. `git pull` in Cloud Shell.
+2. Open Cloud Shell Editor, paste each of the three files content into its phase2-pending/ placeholder (content in chat).
+3. Move them to real locations:
+   - `mv phase2-pending/build.ts backend/src/tools/build.ts`
+   - `mv phase2-pending/loop.ts backend/src/agent/loop.ts`  (replaces existing)
+   - `mv phase2-pending/repair-loop.test.ts backend/src/tests/repair-loop.test.ts`
+4. Wire `cloud_build_wait` into schema.ts and registry.ts (add to imports, ToolSpec list, TOOL_REGISTRY array, HANDLERS map). Claude can do this next session since those edits are surgical and fit the paste-reliability window.
+5. Run `cd backend && npx --no-install tsc --noEmit` to verify. Then `npm test`. Then commit/push and wait for CI.
+6. Run the supply-chain smoke test (exit criterion #2) with a short-lived Cloud SQL instance.
+7. Declare Phase 2 complete. Start Phase 3.
+
+### Phase 3 pre-commitments
+- Auth: Google OAuth 2.0 using credentials already stored in Secret Manager.
+- Deployment: separate Cloud Run service (not bundled with backend).
+- Stack: Next.js (version TBD at Phase 3 kickoff).
