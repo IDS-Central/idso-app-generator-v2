@@ -43,8 +43,13 @@ export async function decryptSessionEdge(cookieValue: string): Promise<SessionDa
     const buf = base64urlToBytes(cookieValue);
     if (buf.length < IV_LEN + TAG_LEN + 1) return null;
     const iv = buf.slice(0, IV_LEN);
-    // Web Crypto AES-GCM expects ciphertext || authTag concatenated.
-    const ctAndTag = buf.slice(IV_LEN);
+    // Node encryptSession stores: iv || authTag || ciphertext.
+    // Web Crypto AES-GCM expects: ciphertext || authTag. Re-assemble.
+    const authTag = buf.slice(IV_LEN, IV_LEN + TAG_LEN);
+    const ciphertext = buf.slice(IV_LEN + TAG_LEN);
+    const ctAndTag = new Uint8Array(ciphertext.length + authTag.length);
+    ctAndTag.set(ciphertext, 0);
+    ctAndTag.set(authTag, ciphertext.length);
     const key = await getKey();
     const plaintextBuf = await crypto.subtle.decrypt(
       { name: 'AES-GCM', iv },
