@@ -1,6 +1,6 @@
 import { GoogleAuth } from 'google-auth-library';
-import type { ToolHandler, ToolHandlerDeps, ToolResult } from './types';
-import { ok, err } from './types';
+import type { ToolHandler, ToolHandlerDeps, ToolResult } from './types.js';
+import { ok, err } from './types.js';
 
 /**
  * cloudrun_deploy  Phase 2 Commit 2b, part 4/4.
