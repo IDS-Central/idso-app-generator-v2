@@ -1275,3 +1275,18 @@ Single file, +7 / -2. TypeScript clean.
 - If an output is large, write to a `/tmp/` file and `cat` / `wc -l` / `tail` it rather than scrolling the terminal and screenshotting.
 
 This note applies to every future checkpoint-resume in this repo.
+
+---
+
+## 2026-04-24  Login flow verified end-to-end 
+
+User (nghia@independencedso.com) completed the full OAuth round-trip on revision `00008-wtf` successfully. Browser tab URL is now `/` (chat UI) instead of bouncing to `/login?next=%2F`  confirms:
+
+- `/api/auth/authorize` encrypts session with Node `encryptSession` (iv||authTag||ciphertext) and sets the session cookie.
+- Edge middleware decrypts the cookie correctly via the fixed `decryptSessionEdge` and allows the request through to `/`.
+- Root page loads (Next.js client-side render of ChatPage).
+
+**OAuth flow is now the baseline working state for all subsequent testing.**
+
+### Open item created by this verification
+The diagnostic `console.log` lines in `middleware.ts` (`mw_bounce`) and `authorize/route.ts` (`authorize_set_cookie`) are still emitting on every request and include the user's email address. Next commit will remove them  these were debug-only instrumentation and should not live in production.
