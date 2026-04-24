@@ -24,6 +24,7 @@ substitutions:
   _RUNTIME_SA: ''        # required at trigger time
   _APP_URL: ''           # required at trigger time (fill after first deploy)
   _BACKEND_URL: ''       # required at trigger time
+  _SHORT_SHA: 'manual'        # required at trigger time (git sha or 'manual')
 
 options:
   logging: CLOUD_LOGGING_ONLY
@@ -32,11 +33,10 @@ options:
 steps:
   - id: build
     name: gcr.io/cloud-builders/docker
-    dir: frontend
     args:
       - build
       - '--tag'
-      - '${_REGION}-docker.pkg.dev/${_GCP_PROJECT}/${_REPO}/${_IMAGE}:${SHORT_SHA}'
+      - '${_REGION}-docker.pkg.dev/${_GCP_PROJECT}/${_REPO}/${_IMAGE}:${_SHORT_SHA}'
       - '--tag'
       - '${_REGION}-docker.pkg.dev/${_GCP_PROJECT}/${_REPO}/${_IMAGE}:latest'
       - '.'
@@ -55,7 +55,7 @@ steps:
       - run
       - deploy
       - '${_SERVICE_NAME}'
-      - '--image=${_REGION}-docker.pkg.dev/${_GCP_PROJECT}/${_REPO}/${_IMAGE}:${SHORT_SHA}'
+      - '--image=${_REGION}-docker.pkg.dev/${_GCP_PROJECT}/${_REPO}/${_IMAGE}:${_SHORT_SHA}'
       - '--region=${_REGION}'
       - '--platform=managed'
       - '--allow-unauthenticated'
@@ -70,5 +70,5 @@ steps:
       - '--timeout=60'
 
 images:
-  - '${_REGION}-docker.pkg.dev/${_GCP_PROJECT}/${_REPO}/${_IMAGE}:${SHORT_SHA}'
+  - '${_REGION}-docker.pkg.dev/${_GCP_PROJECT}/${_REPO}/${_IMAGE}:${_SHORT_SHA}'
   - '${_REGION}-docker.pkg.dev/${_GCP_PROJECT}/${_REPO}/${_IMAGE}:latest'
