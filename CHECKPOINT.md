@@ -1106,3 +1106,11 @@ Earlier grep missed the /v1 prefix. The actual backend chat routes are:
 ### Deferred
 - Session list sidebar (requires backend GET /v1/chat/sessions endpoint - to be added in 3.3)
 - Streaming tool-call progress indicators (will surface automatically once backend emits turn events with role='tool')
+
+## Phase 3 - Milestone 3.3 plan (next)
+
+- Backend: add GET /v1/chat/sessions (list) - clustered on user_email, limit N most recent, returns [{sessionId,title,updatedAt}]
+- Frontend: add sidebar listing previous sessions; clicking switches ChatPage sessionId
+- Frontend: /api/chat/sessions GET proxy (list)
+- Frontend: status/progress indicator while backend is running a turn (derive from lack of turn events after POST /turn)
+- Optional: prod Cloud Run service idso-app-generator-v2-frontend-prod (separate SA or same)
