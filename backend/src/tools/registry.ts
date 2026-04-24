@@ -25,6 +25,7 @@ import { listUserApps, writeOwnerFile } from './ownership.js';
 import { readBuildLogs, readCloudRunLogs } from './logs.js';
 import { planPresent, budgetCheck } from './plan.js';
 import { oauthAddRedirectUri } from './oauth.js';
+import { runInBuildSandbox } from './sandbox.js';
 
 const HANDLERS: Record<string, ToolHandler<any, any>> = {
   bq_catalog_search: bqCatalogSearch,
@@ -45,6 +46,7 @@ const HANDLERS: Record<string, ToolHandler<any, any>> = {
   plan_present: planPresent,
   budget_check: budgetCheck,
   oauth_add_redirect_uri: oauthAddRedirectUri,
+  run_in_build_sandbox: runInBuildSandbox,
 };
 
 export async function dispatch(

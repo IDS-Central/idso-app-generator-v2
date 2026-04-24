@@ -408,6 +408,27 @@ export const OAUTH_ADD_REDIRECT_URI: ToolSpec = {
   side_effect: 'write',
 };
 
+export const RUN_IN_BUILD_SANDBOX: ToolSpec = {
+  name: 'run_in_build_sandbox',
+  description:
+    'Trigger an ephemeral Cloud Run Job execution inside the pre-provisioned idso-build-sandbox template. Use for short build steps that need shell tooling outside Cloud Build (e.g. prisma migrate checks, static analysis). Returns execution_name and initial state.',
+  input_schema: {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      script: { type: 'string', minLength: 1, maxLength: 16384, description: 'Bash script to execute. Runs under /bin/bash -c.' },
+      env: {
+        type: 'object',
+        additionalProperties: { type: 'string', maxLength: 4096 },
+        description: 'Environment variables. Keys must match ^[A-Z][A-Z0-9_]{0,63}$.',
+      },
+      timeout_seconds: { type: 'integer', minimum: 30, maximum: 900, default: 300 },
+    },
+    required: ['script'],
+  },
+  side_effect: 'write',
+};
+
 export const ASK_USER: ToolSpec = {
   name: 'ask_user',
   description:
@@ -449,6 +470,7 @@ export const TOOL_REGISTRY: readonly ToolSpec[] = [
   PLAN_PRESENT,
   BUDGET_CHECK,
   OAUTH_ADD_REDIRECT_URI,
+  RUN_IN_BUILD_SANDBOX,
   ASK_USER,
 ] as const;
 
