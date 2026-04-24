@@ -984,3 +984,45 @@ Status: DONE. tsc --noEmit exits 0.
 12. Create frontend SA, SECRET_KEY secret, wire Secret Manager bindings
 13. Register redirect URI with shared OAuth client
 14. First deploy to dev + smoke test (curl /api/auth/me -> 401, then /login -> 200)
+
+## Milestone 3.1 Step 2: auth routes + middleware + pages + deploy config (commit f80b051)
+
+Status: DONE. tsc --noEmit exits 0, npm run build succeeds.
+
+### New files
+- frontend/src/app/api/auth/login/route.ts - generates state cookie, redirects to Google
+- frontend/src/app/api/auth/authorize/route.ts - verifies state + ID token, writes idso_session cookie, redirects to /
+- frontend/src/app/api/auth/logout/route.ts - clears cookie, redirects to /login
+- frontend/src/app/api/auth/me/route.ts - returns { email, name, picture } from session cookie
+- frontend/src/app/api/health/route.ts - liveness, public
+- frontend/src/middleware.ts - Edge auth enforcement (401 JSON on /api/*, 302 on pages)
+- frontend/src/app/login/page.tsx - Google sign-in button + error display
+- frontend/src/app/page.tsx - authenticated landing placeholder
+- frontend/src/lib/backend.ts - typed fetch client forwarding Bearer id_token
+- frontend/src/lib/session-constants.ts - runtime-agnostic cookie name/ttl
+- frontend/Dockerfile - node:20-alpine multi-stage, port 8080, non-root, standalone
+- frontend/.dockerignore
+- frontend/cloudbuild.yaml - build + push + deploy to idso-app-generator-v2-frontend-dev
+- frontend/next.config.mjs - output=standalone + serverComponentsExternalPackages
+
+### Build summary (next build)
+- 6 dynamic routes + 1 static /_not-found
+- Middleware bundle: 27kB
+- Shared First Load JS: 87.2kB
+
+### Runtime env vars the frontend reads
+- SECRET_KEY - AES key material (from Secret Manager via --set-secrets)
+- IDSO_GCP_PROJECT - reconciliation-dashboard
+- IDSO_APP_URL - own public HTTPS URL (needed for OAuth redirect URI)
+- IDSO_BACKEND_URL - backend Cloud Run URL
+- IDSO_ALLOWED_DOMAIN - independencedso.com
+
+### Next (Milestone 3.1 step 3 - provisioning + first deploy)
+1. Create runtime SA: idso-app-generator-v2-frontend@reconciliation-dashboard.iam.gserviceaccount.com
+2. Grant secretAccessor on oauth-client-id, oauth-client-secret, SECRET_KEY to that SA
+3. Create Secret Manager entry idso-app-generator-v2-frontend-secret-key (32+ bytes random)
+4. Confirm Artifact Registry repo idso-apps exists in us-central1
+5. Run first gcloud builds submit with substitutions; note the Cloud Run URL
+6. Register https://<run-url>/api/auth/authorize as an authorized redirect URI on the shared OAuth client
+7. Redeploy with IDSO_APP_URL set to the Run URL (second build)
+8. Smoke test: curl /api/health -> 200, curl /api/auth/me -> 401, curl /login -> 200, browser login flow
