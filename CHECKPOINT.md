@@ -729,8 +729,8 @@ After shipping cloudrun_deploy (edc9d0c), audited the codebase against docs/PHAS
 - [x] Post-deploy verification  added `backend/src/tools/verify.ts` with `cloud_run_curl_protected` (asserts 401) and `cloud_run_curl_health` (asserts 200). Wired into schema + registry.
 
 ### Tests (plan #10)
-- [ ] Unit tests for tool validators
-- [ ] Integration test: dry-run build using plan_present + read-only tools against real Anthropic API
+- [x] Unit tests  `backend/src/tests/validators.test.ts` (11 tests, all pass via `node --test`). Covers repair-loop helpers + TOOL_REGISTRY shape invariants. Added `test` script to backend/package.json. Zero new dependencies.
+- [ ] Integration test: dry-run build using plan_present + read-only tools against real Anthropic API  *(deferred to post-Phase-2 smoke  runtime cost + flakiness concerns; unit tests cover the schema shape)*
 
 ### Phase 2 exit criteria (plan lines 7378)
 - [ ] "list my apps" runs end-to-end and returns a list

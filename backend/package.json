@@ -1,32 +1,33 @@
 {
-    "name": "idso-app-generator-v2-backend",
-    "version": "0.1.0",
-    "private": true,
-    "description": "Backend for IDSO App Generator v2. Verifies Google ID tokens restricted to @independencedso.com, holds all credentials in Secret Manager, and (in later phases) runs the Anthropic tool-use loop.",
-    "license": "UNLICENSED",
-    "engines": {
-        "node": ">=20"
-    },
-    "type": "module",
-    "main": "dist/index.js",
-    "scripts": {
-        "build": "tsc",
-        "start": "node dist/index.js",
-        "dev": "tsx watch src/index.ts",
-        "typecheck": "tsc --noEmit"
-    },
-    "dependencies": {
-        "@anthropic-ai/sdk": "^0.27.0",
-        "@google-cloud/bigquery": "^7.9.4",
-        "@google-cloud/secret-manager": "^5.6.0",
-        "fastify": "^4.28.1",
-        "google-auth-library": "^9.11.0",
-        "googleapis": "^171.4.0",
-        "pino": "^9.3.2"
-    },
-    "devDependencies": {
-        "@types/node": "^20.14.10",
-        "tsx": "^4.16.2",
-        "typescript": "^5.5.3"
-    }
+  "name": "idso-app-generator-v2-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Backend for IDSO App Generator v2. Verifies Google ID tokens restricted to @independencedso.com, holds all credentials in Secret Manager, and (in later phases) runs the Anthropic tool-use loop.",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20"
+  },
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "tsc && node --test \"dist/tests/*.test.js\""
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.27.0",
+    "@google-cloud/bigquery": "^7.9.4",
+    "@google-cloud/secret-manager": "^5.6.0",
+    "fastify": "^4.28.1",
+    "google-auth-library": "^9.11.0",
+    "googleapis": "^171.4.0",
+    "pino": "^9.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.3"
+  }
 }
