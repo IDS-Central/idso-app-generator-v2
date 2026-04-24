@@ -24,6 +24,7 @@ import { secretCreate, secretAddVersion, secretAccess } from './secrets.js';
 import { listUserApps, writeOwnerFile } from './ownership.js';
 import { readBuildLogs, readCloudRunLogs } from './logs.js';
 import { planPresent, budgetCheck } from './plan.js';
+import { oauthAddRedirectUri } from './oauth.js';
 
 const HANDLERS: Record<string, ToolHandler<any, any>> = {
   bq_catalog_search: bqCatalogSearch,
@@ -43,6 +44,7 @@ const HANDLERS: Record<string, ToolHandler<any, any>> = {
   read_cloud_run_logs: readCloudRunLogs,
   plan_present: planPresent,
   budget_check: budgetCheck,
+  oauth_add_redirect_uri: oauthAddRedirectUri,
 };
 
 export async function dispatch(

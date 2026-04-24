@@ -392,6 +392,22 @@ export const BUDGET_CHECK: ToolSpec = {
   side_effect: 'read',
 };
 
+export const OAUTH_ADD_REDIRECT_URI: ToolSpec = {
+  name: 'oauth_add_redirect_uri',
+  description:
+    'Add a redirect URI to the existing GCP OAuth 2.0 Client (IAM OAuth Clients API) so the generated app can complete OAuth flows. Idempotent if the URI is already present.',
+  input_schema: {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      client_id: { type: 'string', pattern: '^[a-zA-Z0-9_-]{1,128}$', description: 'OAuth client id (last segment of oauthClients/<id>).' },
+      redirect_uri: { type: 'string', pattern: '^https?://[^\\s]{1,2000}$', maxLength: 2048 },
+    },
+    required: ['client_id', 'redirect_uri'],
+  },
+  side_effect: 'write',
+};
+
 export const ASK_USER: ToolSpec = {
   name: 'ask_user',
   description:
@@ -432,6 +448,7 @@ export const TOOL_REGISTRY: readonly ToolSpec[] = [
   READ_CLOUD_RUN_LOGS,
   PLAN_PRESENT,
   BUDGET_CHECK,
+  OAUTH_ADD_REDIRECT_URI,
   ASK_USER,
 ] as const;
 
