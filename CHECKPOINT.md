@@ -3,7 +3,7 @@
 > This file is the single source of truth for deployment state. Update it every
 > time the deployed surface changes (new image, service rename, new secret, etc.).
 
-## Status: Backend scaffold + CI/CD live; data catalog committed with dataset+table descriptions overlay. Phase 2 engine build in progress: tool registry + all four read-tool handlers shipped and green in CI. Next: BQ-backed session store, then the Anthropic tool-use loop, then the SSE chat endpoint, then write-tool handlers.
+## Status: Backend scaffold + CI/CD live; data catalog committed with dataset+table descriptions overlay. Phase 2 engine build in progress: tool registry + all four read-tool handlers shipped and green in CI. Frontend Milestone 3.4 polish shipped to dev (rev `00012-7xh`, commit `fe3e400`): SSE turn dedupe by `(turnNumber, role)`, markdown rendering for assistant/tool turns via `react-markdown` + `remark-gfm` + `@tailwindcss/typography`, and chat input contrast (`text-slate-900`). One known deferred bug: Google ID token (1h TTL) embedded in 8h session cookie causes `401 Could not start session` until user signs out + back in. Awaiting end-to-end user retest of the three UI fixes.
 
 ## Project
 - GCP project display name: `central-workspace`
@@ -1425,3 +1425,55 @@ end-to-end and produces real-data analyses, but three follow-on UI bugs surfaced
 - Create prod frontend Cloud Run service (dev is in place).
 - ID-token refresh-token flow (above).
 
+
+## 2026-04-25  Milestone 3.4 UI polish  (rev `00012-7xh`)
+
+After user smoke-tested rev `00011-s4k` and reported three follow-on UI bugs, shipped a single fix
+commit (`fe3e400`) that addresses all three:
+
+### Bugs fixed
+1. **Assistant bubbles disappearing.** `ChatPage.tsx` SSE turn-merge filtered prev turns by
+   `turnNumber` only, so any new turn (assistant or tool) sharing a `turnNumber` would clobber the
+   prior assistant bubble while the user bubble (different role) survived  explaining the user
+   report that "only LLM messages disappear, user messages stay". Fix: dedupe by the tuple
+   `(turnNumber, role)` and apply a stable role-sort tiebreaker (`user < assistant < tool`).
+2. **Markdown rendered as raw text.** Assistant/tool turns were rendered through a plain
+   `whitespace-pre-wrap` div, so `##`, `**bold**`, `---`, lists, and `\n\n` showed as literal
+   characters. Fix: render assistant and tool turns through
+   `<ReactMarkdown remarkPlugins={[remarkGfm]}>` wrapped in `prose prose-sm prose-slate` styles
+   with code/pre tweaks; user turns stay raw `whitespace-pre-wrap`. Added deps
+   `react-markdown@^9`, `remark-gfm@^4`, `@tailwindcss/typography@^0.5`. Wired typography plugin
+   into `tailwind.config.ts`.
+3. **Chat input near-invisible.** `<input>` had no explicit text color so it inherited a
+   near-white tone against the white card. Fix: add `text-slate-900 placeholder:text-slate-500`
+   to the input className.
+
+### Deploy
+- Commit: `fe3e400  fix(frontend): dedupe SSE turns by role, render markdown, darken input`
+- Build:  `ee62ebb1-1eb6-4588-9f86-f869938c71be`  STATUS=SUCCESS  DURATION=2m46s
+- Image:  `us-central1-docker.pkg.dev/reconciliation-dashboard/idso-apps/idso-app-generator-v2-frontend:fe3e400`
+- Revision: `idso-app-generator-v2-frontend-dev-00012-7xh`  serving 100% traffic
+- Files changed: `frontend/src/components/ChatPage.tsx`, `frontend/tailwind.config.ts`,
+  `frontend/package.json`, `frontend/package-lock.json`, `CHECKPOINT.md`
+
+### Known unresolved (deferred)
+- **Google ID token (1h TTL) inside 8h session cookie.** `frontend/src/app/api/auth/authorise/route.ts`
+  stores `idToken: user.idToken, expiresAt: now + SESSION_LIFETIME_MS` (8h), but the inner Google
+  `id_token` only lasts 1h. After ~1h every backend call returns 401 ("Could not start session")
+  until the user signs out + back in. Real fix: request `access_type=offline` + `prompt=consent`
+  in the OAuth start, store the encrypted refresh token in the session, and add a
+  `refreshIdToken()` helper invoked by `getIdToken()` when the cached token is within ~5 min of
+  expiry. Logged for next milestone.
+
+### Next
+- Wait for user to hard-refresh tab and retest:
+  (a) all assistant bubbles persist (no more disappearing/replacement),
+  (b) markdown renders properly (`##` -> heading, `**` -> bold, `---` -> rule, lists, code),
+  (c) chat input text is dark slate-900 and readable.
+- Once confirmed, mark Milestone 3.4 fully verified and pick next item from the deferred queue.
+
+### Remaining / deferred queue (priority order)
+1. ID-token refresh-token flow (OAuth `access_type=offline` + `refreshIdToken()`).
+2. Create prod frontend Cloud Run service (dev is in place).
+3. Phase 2 supply-chain smoke test.
+4. Delete 4 orphaned smoke repos (`idso-app-smoke-cb-1/2/3`, `idso-app-smoke-cd-1`).
