@@ -1,6 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface Turn {
   turnNumber: number;
@@ -90,9 +92,29 @@ export default function ChatPage({ userEmail }: Props) {
       try {
         const t = JSON.parse((ev as MessageEvent).data) as Turn;
         setTurns((prev) => {
-          const next = prev.filter((x) => x.turnNumber !== t.turnNumber);
-          next.push(t);
-          next.sort((a, b) => a.turnNumber - b.turnNumber);
+          // Replace only an existing turn with the SAME turnNumber AND role.
+          // Different roles (assistant vs tool) can legitimately share a
+          // turnNumber within the same agent step, so we must not clobber them.
+          const idx = prev.findIndex(
+            (x) => x.turnNumber === t.turnNumber && x.role === t.role,
+          );
+          let next: Turn[];
+          if (idx >= 0) {
+            next = prev.slice();
+            // Preserve any client-side flags (toolUseId / pendingApproval) the
+            // POST /turn handler set on this turn before SSE replayed it.
+            next[idx] = { ...next[idx], ...t };
+          } else {
+            next = [...prev, t];
+          }
+          next.sort((a, b) => {
+            if (a.turnNumber !== b.turnNumber) {
+              return a.turnNumber - b.turnNumber;
+            }
+            // Stable role order within the same turnNumber: user, assistant, tool.
+            const order = { user: 0, assistant: 1, tool: 2 } as const;
+            return order[a.role] - order[b.role];
+          });
           return next;
         });
       } catch {
@@ -346,7 +368,7 @@ export default function ChatPage({ userEmail }: Props) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Describe what to build..."
-              className="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm outline-none focus:border-slate-500"
+              className="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-900 placeholder:text-slate-500 outline-none focus:border-slate-500"
               disabled={sending}
             />
             <button
@@ -408,8 +430,16 @@ function TurnBubble({
         : 'bg-white text-slate-800 border border-slate-200';
   return (
     <div className={`flex flex-col ${align}`}>
-      <div className={`max-w-[80%] rounded-xl px-4 py-3 text-sm whitespace-pre-wrap ${bg}`}>
-        {renderTurnContent(turn)}
+      <div className={`max-w-[80%] rounded-xl px-4 py-3 text-sm ${bg}`}>
+        {turn.role === 'user' ? (
+          <div className="whitespace-pre-wrap">{renderTurnContent(turn)}</div>
+        ) : (
+          <div className="prose prose-sm prose-slate max-w-none break-words [&_pre]:bg-slate-900 [&_pre]:text-slate-100 [&_code]:font-mono [&_code]:text-[0.9em] [&_:not(pre)>code]:bg-slate-100 [&_:not(pre)>code]:px-1 [&_:not(pre)>code]:py-0.5 [&_:not(pre)>code]:rounded">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {renderTurnContent(turn)}
+            </ReactMarkdown>
+          </div>
+        )}
       </div>
       {turn.pendingApproval && (
         <div className="mt-2 flex gap-2">

@@ -1389,3 +1389,39 @@ Three files, 100 insertions / 22 deletions:
 - Delete 4 orphaned smoke repos (idso-app-smoke-cb-1/2/3, idso-app-smoke-cd-1).
 - Create prod frontend Cloud Run service (dev is in place).
 
+## 2026-04-24  Milestone 3.4 smoke test polish
+
+User smoke-tested rev `00011-s4k` (commit `f6ba444`). Backend round-trip works
+end-to-end and produces real-data analyses, but three follow-on UI bugs surfaced:
+
+1. **Assistant bubbles disappearing.** The SSE turn-merge in `ChatPage.tsx`
+   filtered prev turns by `turnNumber` only, so any new turn (assistant or
+   tool) with a shared `turnNumber` would clobber the prior bubble. Fix:
+   dedupe by `(turnNumber, role)` and use a stable role-sort tiebreaker
+   (`user < assistant < tool`).
+2. **Markdown rendered as raw text.** The bubble used `whitespace-pre-wrap`
+   on the raw string from `renderTurnContent()`, so `##`, `**`, `---`, list
+   bullets, and code fences all rendered literally. Fix: render assistant /
+   tool turns through `<ReactMarkdown remarkPlugins={[remarkGfm]}>` wrapped
+   in `prose prose-sm prose-slate` styles. Added `react-markdown@^9`,
+   `remark-gfm@^4`, and `@tailwindcss/typography@^0.5` and wired the
+   typography plugin into `tailwind.config.ts`. User turns stay plain
+   whitespace-pre-wrap.
+3. **Chat input text near-invisible.** `<input>` had no explicit text color;
+   inherited a near-white tone. Fix: add `text-slate-900
+   placeholder:text-slate-500` to the input className.
+
+### Known unresolved (deferred)
+
+- Google ID token expires after 1h while the encrypted session cookie lasts
+  8h; once the inner idToken expires every backend call returns 401 until
+  the user signs out + back in. Needs an OAuth refresh-token flow
+  (`access_type=offline` + refresh helper). Logged for a future milestone.
+
+### Remaining / deferred
+
+- Phase 2 supply-chain smoke test.
+- Delete 4 orphaned smoke repos (idso-app-smoke-cb-1/2/3, idso-app-smoke-cd-1).
+- Create prod frontend Cloud Run service (dev is in place).
+- ID-token refresh-token flow (above).
+
