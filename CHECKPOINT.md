@@ -1477,3 +1477,26 @@ commit (`fe3e400`) that addresses all three:
 2. Create prod frontend Cloud Run service (dev is in place).
 3. Phase 2 supply-chain smoke test.
 4. Delete 4 orphaned smoke repos (`idso-app-smoke-cb-1/2/3`, `idso-app-smoke-cd-1`).
+
+## 2026-04-25  Milestone 3.4 UI polish - follow-on bug report
+
+After hard-refreshing rev `00012-7xh`, user reported two new bugs:
+
+1. **Old assistant turns lose markdown formatting.** Only the most recent assistant
+   bubble renders through `<ReactMarkdown>`. Once a new turn arrives, the previous
+   assistant bubble flips back to raw text (`##`, `**bold**`, `\n\n` show literally).
+   Likely cause: the render branch keys off a transient flag on the turn (e.g.
+   `streaming`, or `role === 'assistant'` flipping to `tool` once a `tool_use`
+   payload arrives) so historical turns silently fall through to the
+   `whitespace-pre-wrap` branch.
+2. **Turns render out of order.** New assistant bubbles appear ABOVE prior user
+   bubbles instead of being appended at the bottom. Root cause: the role-sort
+   tiebreaker added in `fe3e400` is being applied globally instead of only as a
+   tiebreaker WITHIN the same `turnNumber`. The sort needs to be strictly
+   `turnNumber` ascending, with role-sort only kicking in when `turnNumber` is
+   tied.
+
+Next: diagnose `ChatPage.tsx` SSE handler + render branch, ship a fix that
+(a) sorts strictly by `turnNumber` first / role only as tiebreaker, and
+(b) makes the markdown render branch depend only on stable role, not transient
+streaming state.
